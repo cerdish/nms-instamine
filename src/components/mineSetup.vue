@@ -31,7 +31,8 @@
     const state = reactive({
         output: "",
         partCount: 0,
-        projectedStorage: 0
+        projectedStorage: 0,
+        projectedExtractionRate: 0
     });
 
     const savedSetupOptions = computed(function(){
@@ -63,9 +64,17 @@
 
         state.output = JSON.stringify(result, null, 2);
 
-        state.partCount = _.isArray(result) ? result.length : result.Objects.length;
+        let objects = _.isArray(result) ? result : result.Objects
 
-        state.projectedStorage = (setup.collectionPointCount * 1000 * setup.depotDensity) + (setup.collectionPointCount * 250 * setup.extractorDensity);
+        state.partCount = objects.length;
+
+        let extractors = _.filter(objects, {ObjectID: "^U_EXTRACTOR_S"});
+
+        let depots = _.filter(objects, {ObjectID: "^U_SILO_S"});
+
+        state.projectedStorage = (depots.length * 1000) + (extractors.length * 250);
+
+        state.projectedExtractionRate = extractors.length * 625
     }
 
     const exctractMineSetup = () => {
@@ -142,9 +151,11 @@
                     Output
                     <br>
                     <span class="smaller">
-                        (Part Count: {{state.partCount}})
+                        Part Count: {{state.partCount}}
                         <br>
-                        (Projected Storage: {{state.projectedStorage}})
+                        Projected Storage: {{state.projectedStorage}}
+                        <br>
+                        Projected Extraction Rate: {{state.projectedExtractionRate}} (assumes 100% density with zero diminishing returns)
                     </span>
                 </label>
                 <br>
