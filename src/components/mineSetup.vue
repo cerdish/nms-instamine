@@ -23,6 +23,18 @@
         includeMasterDepots: true,
         includeWires: true,
         includeRoof: false,
+        includeWalls: false,
+        includeLandingPads: true,
+        includePark: true,
+        includeFarm: true,
+        farm:[
+            {ObjectID:"^LUSHPLANT", count:46},
+            {ObjectID:"^RADIOPLANT", count:46},
+            {ObjectID:"^SNOWPLANT", count:35},
+            {ObjectID:"^SCORCHEDPLANT", count:23},
+            {ObjectID:"^POOPPLANT", count:12},
+            {ObjectID:"^BARRENPLANT", count:6}
+        ],
         removeCurrentBaseParts: true
     });
 
@@ -39,7 +51,7 @@
         return Object.keys(setups)
     });
 
-    const checkboxFields = ['includeRoof','includeWires','includeDepots','removeCurrentBaseParts','includeExtractors','includeMasterDepots'];
+    const checkboxFields = ['includeRoof','includeWires','includeDepots','removeCurrentBaseParts','includeExtractors','includeMasterDepots','includeWalls','includeLandingPads','includePark','includeFarm'];
     
     const outputEl = ref(null);
 
@@ -115,10 +127,34 @@
         <form @submit.prevent = "createMine()">
             <div class="flex">
                 <div>
-                    <div v-for = "option, key in setup" class="margin">
+                    <div v-for = "option, key in setup" class="margin" :key="key">
                         <label :for="key">{{key}}</label>
                         
-                        <template v-if="key=='base'">
+                        <template v-if="key=='farm'">
+                            <table style="padding:0.5rem;">
+                                <tr>
+                                    <td>ObjectID</td>
+                                    <td>Count</td>
+                                    <td>
+                                        <button type="button" @click="setup.farm.push({ObjectID:'',count:1})">+</button>
+                                    </td>
+                                </tr>
+
+                                <tr v-for = "item,fIndex in setup.farm">
+                                    <td>
+                                        <input type="text" v-model="item.ObjectID">
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model="item.count" style="width:50px;">
+                                    </td>
+                                    <td>
+                                        <button type="button" @click="setup.farm.splice(fIndex, 1)">-</button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </template>
+
+                        <template v-else-if="key=='base'">
                             <br>
                             <textarea id="base" v-model="setup[key]"></textarea>
                             <br>
@@ -128,7 +164,7 @@
 
                             <select @change = "loadSetup($event)">
                                 <option value="">Select an save setup to load it</option>
-                                <option v-for = "option in savedSetupOptions">{{option}}</option>
+                                <option v-for = "option in savedSetupOptions" :key="option">{{option}}</option>
                             </select>
                         </template>
                         

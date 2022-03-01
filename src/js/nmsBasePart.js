@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import { Object3D } from 'three';
-import { createLocation } from '/src/js/baseBuilder.js';
 
 const powerOffsets = {
-    "^TELEPORTER":[0, 0, 0]
-}
+    "^TELEPORTER":[0, 0, 0],
+    "^BIOROOM":[4.55, 0.45, 4.55]
+};
 const pipeOffsets = {
     "^U_EXTRACTOR_S":[0, 0.3, 1]
-}
+};
 
 class nmsBasePart{
     Timestamp = 0;
@@ -16,7 +15,9 @@ class nmsBasePart{
     Position = [0, 0, 0];
     Up = [0, 1, 0];
     At = [0, 1, 0];
-    #jitterCoefficient = 0.01;
+    #jitterCoefficient = 0;
+    #scale = 1;
+    #object3D = new THREE.Object3D();
 
     constructor(ObjectID, UserData, Position, Up, At, jitterCoefficient){
         this.ObjectID = ObjectID;
@@ -25,12 +26,11 @@ class nmsBasePart{
 
         if(typeof(jitterCoefficient) != 'undefined') this.#jitterCoefficient = jitterCoefficient;
 
-        
-        if(Position) this.Position = [...Position];
-        if(Up) this.Up = Up;
-        if(At) this.At = At;
+        this.#object3D.at = new THREE.Vector3();
 
-        //console.log(this.ObjectID, this.jitterCoefficient, jitterCoefficient);
+        if(Position) this.setPosition(Position);
+        if(Up) this.setUp(Up);
+        if(At) this.setAt(At);
 
         this.addJitter();
     }
@@ -38,14 +38,21 @@ class nmsBasePart{
     get powerPos(){
         let offset = powerOffsets[this.ObjectID] || [0, 0.32, -1.15];
 
-        let obj = new THREE.Object3D();
-        obj.position.fromArray(this.Position);
+        let obj = this.#object3D.clone();
 
-        let upVector = new THREE.Vector3().fromArray(this.Up);
-        let atVector = new THREE.Vector3().fromArray(this.At);
+        let axies = {
+            x: false,
+            y: this.#object3D.up.clone().normalize(),
+            z: this.#object3D.at.clone().normalize()
+        };
 
-        obj.translateOnAxis(upVector, offset[1]);
-        obj.translateOnAxis(atVector, offset[2]);
+        axies.x = axies.z.clone().applyAxisAngle(axies.y, 90 * Math.PI / 180);
+
+        console.log(this.ObjectID, axies)
+        
+        obj.translateOnAxis(axies.x, offset[0] * this.#scale);
+        obj.translateOnAxis(axies.y, offset[1] * this.#scale);
+        obj.translateOnAxis(axies.z, offset[2] * this.#scale);
 
         return obj.position.toArray();
     }
@@ -77,34 +84,81 @@ class nmsBasePart{
         return this;
     }
 
+    toObject3D(){
+        let obj = this.#object3D.clone();
+
+        obj.at = this.#object3D.at.clone();
+
+        return obj;
+    }
+
     translateOnAxis(axis, magnitude){
-        let currentLocation = createLocation(new THREE.Vector3().fromArray(this.Position));
+        this.#object3D.translateOnAxis(axis, magnitude);
 
-        currentLocation.translateOnAxis(axis, magnitude);
+        this.Position = jitterEach(this.#object3D.position.toArray(), this.#jitterCoefficient);
 
-        this.Position = jitterEach([currentLocation.position.x, currentLocation.position.y, currentLocation.position.z]);
+        return this;
+    }
+
+    rotateOnAxis(axis, degrees){
+        this.rotateAt(axis, degrees);
+        this.rotateUp(axis, degrees);
+
+        return this;
+    }
+
+    rotateAt(axis, degrees){
+        let rads = degrees * Math.PI / 180;
+
+        this.#object3D.at.applyAxisAngle(axis, rads);
+
+        this.At = jitterEach(this.#object3D.at.toArray(), this.#jitterCoefficient);
+
+        return this;
+    }
+
+    rotateUp(axis, degrees){
+        let rads = degrees * Math.PI / 180;
+
+        this.#object3D.up.applyAxisAngle(axis, rads);
+
+        this.Up = jitterEach(this.#object3D.up.toArray(), this.#jitterCoefficient);
 
         return this;
     }
 
     scale(magnitude){
-        this.At = new THREE.Vector3().fromArray(this.At).multiplyScalar(magnitude).toArray();
-        this.Up = new THREE.Vector3().fromArray(this.Up).multiplyScalar(magnitude).toArray();
+        this.#object3D.at.multiplyScalar(magnitude);
+        this.#object3D.up.multiplyScalar(magnitude);
 
+        this.At = this.#object3D.at.toArray();
+        this.Up = this.#object3D.up.toArray();
+
+        this.#scale = this.#scale * magnitude;
+        
         return this;
     }
-
+    
     normalize(){
-        this.At = new THREE.Vector3().fromArray(this.At).normalize().toArray();
-        this.Up = new THREE.Vector3().fromArray(this.Up).normalize().toArray();
+        this.#object3D.at.normalize();
+        this.#object3D.up.normalize();
+
+        this.At = this.#object3D.at.toArray();
+        this.Up = this.#object3D.up.toArray();
+        
+        this.#scale = 1;
 
         return this;
     }
 
     applyLocation(location){
-        this.Position = [location.position.x, location.position.y, location.position.z];
-        this.At = [location.at.x, location.at.y, location.at.z];
-        this.Up = [location.up.x, location.up.y, location.up.z];
+        this.#object3D.position.fromArray(location.position.toArray());
+        this.#object3D.at.fromArray(location.at.toArray());
+        this.#object3D.up.fromArray(location.up.toArray());
+
+        this.Position = this.#object3D.position.toArray();
+        this.At = this.#object3D.at.toArray();
+        this.Up = this.#object3D.up.toArray();
         
         this.addJitter();
 
@@ -114,21 +168,102 @@ class nmsBasePart{
     clone(ObjectID){
         ObjectID = ObjectID || this.ObjectID
 
-        return new nmsBasePart(ObjectID, this.UserData, [...this.Position], [...this.Up], [...this.At], this.#jitterCoefficient);
+        return new nmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+    }
+
+    cloneOnCircle(count, radius, axis, offset, rotateClones, moveAxis){
+        offset = offset || 0;
+
+        var offsetRads = offset * Math.PI / 180;
+        
+        var degreesPerStep = 360 / count;
+        var radsPerStep = degreesPerStep * Math.PI / 180;
+
+        var clones = [];
+
+        let moveVector = new THREE.Vector3().fromArray(this.At).normalize();
+
+        if(moveAxis) moveVector = moveAxis.clone().normalize();
+
+        moveVector.applyAxisAngle(axis, offsetRads);
+
+        for(let i = 0; i < count; i++){
+            let clone = this.clone();
+
+            let totalOffset = (degreesPerStep * i) + offset;
+
+            if(rotateClones) clone.rotateOnAxis(axis, totalOffset);
+            
+            clone.translateOnAxis(moveVector, radius);
+
+            clones.push(clone);
+
+            moveVector.applyAxisAngle(axis, radsPerStep)
+        }
+
+        return clones;
+    }
+
+    cloneOnAxis(axis, count, offset){
+        let clones = [];
+
+        for(let i = 0; i < count; i++){
+            let totalOffset = i * offset;
+
+            clones.push(this.clone().translateOnAxis(axis, totalOffset));
+        }
+
+        return clones;
     }
 
     invertUp(){
-        let upVector = new THREE.Vector3().fromArray(this.Up).negate();
+        this.#object3D.up.negate();
 
-        this.Up = upVector.toArray();
+        this.Up = this.#object3D.up.toArray();
 
         return this;
     }
     
     invertAt(){
-        let atVector = new THREE.Vector3().fromArray(this.At).negate();
+        this.#object3D.at.negate();
+
+        this.At = this.#object3D.at.toArray();
+
+        return this;
+    }
+
+    setUserData(userData){
+        this.UserData = userData;
+
+        return this;
+    }
+
+    setPosition(vector){
+        this.Position = getVectorArray(vector);
+
+        this.#object3D.position.fromArray(this.Position);
         
-        this.At = atVector.toArray();
+        return this;
+    }
+    
+    setUp(vector){
+        this.Up = getVectorArray(vector);
+
+        this.#object3D.up.fromArray(this.Up);
+
+        return this;
+    }
+
+    setAt(vector){
+        this.At = getVectorArray(vector);
+
+        this.#object3D.at.fromArray(this.At);
+
+        return this;
+    }
+
+    setJitter(jitter){
+        this.jitterCoefficient = jitter;
 
         return this;
     }
@@ -150,6 +285,14 @@ function getJitter(jitterCoefficient){
     let jitter = (Math.random()-0.5) * jitterCoefficient;
 
     return jitter;
+}
+
+function getVectorArray(vector){
+    if(typeof(vector.toArray) == 'function') return vector.toArray();
+    
+    if(vector.indexOf(",") > -1) return vector.split(",").map(Number);
+
+    return vector;
 }
 
 export { nmsBasePart };

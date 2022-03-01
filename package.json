@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.21",
-    "three": "^0.137.5",
+    "three": "^0.138.0",
     "vue": "^3.2.25"
   },
   "devDependencies": {
