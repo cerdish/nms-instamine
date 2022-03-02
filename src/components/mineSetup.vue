@@ -10,13 +10,13 @@
         materialHotspotVector: "0,1,0",
         powerHotspotPosition: "0,0,100",
         depotPosition: "",
-        collectionPointCount: 5,
+        collectionPointCount: 10,
         depotDensity: 1,
         extractorDensity: 1,
-        powerHotspotEfficiency: 47,
+        powerHotspotEfficiency: 100,
         userData: 0,
         floorObjectID: "^T_FLOOR",
-        roofObjectID: "^F_ROOF6",
+        roofObjectID: "^T_GFLOOR",
         depotScale: 1,
         includeExtractors: true,
         includeDepots: true,
@@ -26,14 +26,24 @@
         includeWalls: false,
         includeLandingPads: true,
         includePark: true,
-        includeFarm: true,
-        farm:[
-            {ObjectID:"^LUSHPLANT", count:46},
-            {ObjectID:"^RADIOPLANT", count:46},
-            {ObjectID:"^SNOWPLANT", count:35},
-            {ObjectID:"^SCORCHEDPLANT", count:23},
-            {ObjectID:"^POOPPLANT", count:12},
-            {ObjectID:"^BARRENPLANT", count:6}
+        includeFarms: true,
+        farms:[
+            [
+                {ObjectID:"^LUSHPLANT", count:46},
+                {ObjectID:"^RADIOPLANT", count:46},
+                {ObjectID:"^SNOWPLANT", count:35},
+                {ObjectID:"^SCORCHEDPLANT", count:23},
+                {ObjectID:"^POOPPLANT", count:12},
+                {ObjectID:"^BARRENPLANT", count:6}
+            ],
+            [
+                {ObjectID:"^TOXICPLANT", count:69},
+                {ObjectID:"^LUSHPLANT", count:46},
+                {ObjectID:"^SCORCHEDPLANT", count:23},
+                {ObjectID:"^BARRENPLANT", count:18},
+                {ObjectID:"^SNOWPLANT", count:12},
+                {ObjectID:"^CREATUREPLANT", count:6}
+            ]
         ],
         removeCurrentBaseParts: true
     });
@@ -51,7 +61,7 @@
         return Object.keys(setups)
     });
 
-    const checkboxFields = ['includeRoof','includeWires','includeDepots','removeCurrentBaseParts','includeExtractors','includeMasterDepots','includeWalls','includeLandingPads','includePark','includeFarm'];
+    const checkboxFields = ['includeRoof','includeWires','includeDepots','removeCurrentBaseParts','includeExtractors','includeMasterDepots','includeWalls','includeLandingPads','includePark','includeFarms'];
     
     const outputEl = ref(null);
 
@@ -128,27 +138,34 @@
             <div class="flex">
                 <div>
                     <div v-for = "option, key in setup" class="margin" :key="key">
-                        <label :for="key">{{key}}</label>
+                        <label :for="key">
+                            {{key}}
+                        </label>
                         
-                        <template v-if="key=='farm'">
-                            <table style="padding:0.5rem;">
+                        <template v-if="key=='farms'">
+                            <button type="button" @click="setup.farms.push([])">+</button>
+
+                            <table style="padding:0.5rem;" v-for="farm,fIndex in setup.farms">
                                 <tr>
-                                    <td>ObjectID</td>
+                                    <td>
+                                        <button type="button" @click="setup.farms.splice(fIndex, 1)">-</button>
+                                        ObjectID
+                                    </td>
                                     <td>Count</td>
                                     <td>
-                                        <button type="button" @click="setup.farm.push({ObjectID:'',count:1})">+</button>
+                                        <button type="button" @click="farm.push({ObjectID:'',count:1})">+</button>
                                     </td>
                                 </tr>
 
-                                <tr v-for = "item,fIndex in setup.farm">
+                                <tr v-for = "crop,cIndex in farm">
                                     <td>
-                                        <input type="text" v-model="item.ObjectID">
+                                        <input type="text" v-model="crop.ObjectID">
                                     </td>
                                     <td>
-                                        <input type="text" v-model="item.count" style="width:50px;">
+                                        <input type="text" v-model="crop.count" style="width:50px;">
                                     </td>
                                     <td>
-                                        <button type="button" @click="setup.farm.splice(fIndex, 1)">-</button>
+                                        <button type="button" @click="farm.splice(cIndex, 1)">-</button>
                                     </td>
                                 </tr>
                             </table>

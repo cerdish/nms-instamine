@@ -2,11 +2,13 @@ import * as THREE from 'three';
 
 const powerOffsets = {
     "^TELEPORTER":[0, 0, 0],
+    "^U_MINIPORTAL":[0, 0.6, -1.55],
     "^BIOROOM":[4.55, 0.45, 4.55]
 };
 const pipeOffsets = {
     "^U_EXTRACTOR_S":[0, 0.3, 1]
 };
+const teleOffsets = {};
 
 class nmsBasePart{
     Timestamp = 0;
@@ -48,7 +50,7 @@ class nmsBasePart{
 
         axies.x = axies.z.clone().applyAxisAngle(axies.y, 90 * Math.PI / 180);
 
-        console.log(this.ObjectID, axies)
+        //console.log(this.ObjectID, axies)
         
         obj.translateOnAxis(axies.x, offset[0] * this.#scale);
         obj.translateOnAxis(axies.y, offset[1] * this.#scale);
@@ -71,11 +73,26 @@ class nmsBasePart{
 
         return obj.position.toArray();
     }
+    
+    get telePos(){
+        let offset = teleOffsets[this.ObjectID] || [0, 1.7, -0.9];
+
+        let obj = new THREE.Object3D();
+        obj.position.fromArray(this.Position);
+
+        var upVector = new THREE.Vector3().fromArray(this.Up);
+        var atVector = new THREE.Vector3().fromArray(this.At);
+
+        obj.translateOnAxis(upVector, offset[1]);
+        obj.translateOnAxis(atVector, offset[2]);
+
+        return obj.position.toArray();
+    }
 
     addJitter(jitterCoefficient){
         if(typeof(jitterCoefficient) == 'undefined') jitterCoefficient = this.#jitterCoefficient;
 
-        //console.log("add jitter", this.ObjectID, jitterCoefficient);
+        if(jitterCoefficient) console.log("add jitter", this.ObjectID, jitterCoefficient);
 
         this.Position = jitterEach(this.Position, jitterCoefficient);
         this.Up = jitterEach(this.Up, jitterCoefficient);
@@ -263,7 +280,7 @@ class nmsBasePart{
     }
 
     setJitter(jitter){
-        this.jitterCoefficient = jitter;
+        this.#jitterCoefficient = jitter;
 
         return this;
     }
