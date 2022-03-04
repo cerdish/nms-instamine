@@ -155,6 +155,18 @@ class nmsBasePart{
         
         return this;
     }
+
+    scaleTo(scale){
+        this.#object3D.at.normalize().multiplyScalar(scale);
+        this.#object3D.up.normalize().multiplyScalar(scale);
+
+        this.At = this.#object3D.at.toArray();
+        this.Up = this.#object3D.up.toArray();
+
+        this.#scale = scale;
+
+        return this;
+    }
     
     normalize(){
         this.#object3D.at.normalize();
@@ -185,7 +197,9 @@ class nmsBasePart{
     clone(ObjectID){
         ObjectID = ObjectID || this.ObjectID
 
-        return new nmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+        let clone = new nmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+
+        return clone.scaleTo(this.#scale);
     }
 
     cloneOnCircle(count, radius, axis, offset, rotateClones, moveAxis){
@@ -221,13 +235,20 @@ class nmsBasePart{
         return clones;
     }
 
-    cloneOnAxis(axis, count, offset){
+    cloneOnAxis(axis, count, offset, totalOffset){
         let clones = [];
+
+        if(!offset && totalOffset){
+            offset = totalOffset / (count - 1);
+        }
 
         for(let i = 0; i < count; i++){
             let totalOffset = i * offset;
 
-            clones.push(this.clone().translateOnAxis(axis, totalOffset));
+            let userData = "1" + "0".repeat(i);
+            userData = parseInt(userData, 2);
+
+            clones.push(this.clone().translateOnAxis(axis, totalOffset))//.setUserData(userData));
         }
 
         return clones;

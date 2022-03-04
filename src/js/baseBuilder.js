@@ -64,44 +64,45 @@ function createVector(vector){
     return newVector;
 }
 
-function getMineAxis(materialHotspotVector, materialHotspotPosition, powerHotspotPosition){
-    let axis = {
+function getMineAxies(materialHotspotVector, materialHotspotPosition, powerHotspotPosition){
+    let axies = {
         x: new THREE.Vector3(),
         y: new THREE.Vector3().fromArray(materialHotspotVector.toArray()).normalize(),
-        z: new THREE.Vector3()
+        z: new THREE.Vector3(),
+        position: new THREE.Vector3().fromArray(powerHotspotPosition.toArray())
     };
 
     //draw a triangle between the extractors and the generators, this can be used to calculate the normal which we will use to place the extractors
     let triangleCompletionPoint1 = createLocation(materialHotspotPosition, [0,0,0], [0,0,0]);
-    triangleCompletionPoint1.translateOnAxis(axis.y, 500);
+    triangleCompletionPoint1.translateOnAxis(axies.y, 500);
     
     let alignmentTriangle1 = new THREE.Triangle(materialHotspotPosition, powerHotspotPosition, triangleCompletionPoint1.position);
 
-    alignmentTriangle1.getNormal(axis.x).normalize();
+    alignmentTriangle1.getNormal(axies.x).normalize();
 
-    axis.z.fromArray(axis.x.toArray());
+    axies.z.fromArray(axies.x.toArray());
 
-    axis.z.applyAxisAngle(axis.y, 90 * (Math.PI / 180));
+    axies.z.applyAxisAngle(axies.y, 90 * (Math.PI / 180));
 
-    //console.log(axis)
+    //console.log(axies)
 
-    return axis;
+    return axies;
 }
 
-function findFirstDepotLocation(setup, materialHotspotPosition, mineAxis){
+function findFirstDepotLocation(setup, materialHotspotPosition, mineAxies){
     let depotPosition = materialHotspotPosition;
 
     if(setup.depotPosition){
         depotPosition = new THREE.Vector3().fromArray(setup.depotPosition.split(",").map(Number));
     }
 
-    let depotLocation = createLocation(depotPosition, mineAxis.y, mineAxis.z, setup.depotScale, setup.depotScale);
+    let depotLocation = createLocation(depotPosition, mineAxies.y, mineAxies.z, setup.depotScale, setup.depotScale);
 
     if(setup.depotPosition) return depotLocation;
 
-    depotLocation.translateOnAxis(mineAxis.z, (depotsPerRow) * floorWidth * setup.depotScale);
-    depotLocation.translateOnAxis(mineAxis.x, (-3 * floorWidth - (floorWidth / 2)) * setup.depotScale);
-    depotLocation.translateOnAxis(mineAxis.y, floorWidth * depotsPerRow);
+    depotLocation.translateOnAxis(mineAxies.z, (depotsPerRow) * floorWidth * setup.depotScale);
+    depotLocation.translateOnAxis(mineAxies.x, (-3 * floorWidth - (floorWidth / 2)) * setup.depotScale);
+    depotLocation.translateOnAxis(mineAxies.y, floorWidth * depotsPerRow);
 
     return depotLocation;
 }
@@ -115,9 +116,9 @@ function createMine(setup, base){
     let materialHotspotPosition = new THREE.Vector3().fromArray(setup.materialHotspotPosition.split(",").map(Number));
     let powerHotspotPosition = new THREE.Vector3().fromArray(setup.powerHotspotPosition.split(",").map(Number));
 
-    let mineAxis = getMineAxis(materialHotspotVector, materialHotspotPosition, powerHotspotPosition);
+    let mineAxies = getMineAxies(materialHotspotVector, materialHotspotPosition, powerHotspotPosition);
 
-    //console.log(mineAxis);
+    //console.log(mineAxies);
 
     //calculate generators needed to power the tower
     let powerPerGenerator = powerHotspotMax * (setup.powerHotspotEfficiency / 100);
@@ -129,12 +130,12 @@ function createMine(setup, base){
 
     let generatorCount = Math.ceil(powerUsage / powerPerGenerator);
 
-    let extractorLocation = createLocation(materialHotspotPosition, mineAxis.x, mineAxis.z);
+    let extractorLocation = createLocation(materialHotspotPosition, mineAxies.x, mineAxies.z);
 
-    let depotLocation = findFirstDepotLocation(setup, materialHotspotPosition, mineAxis);
+    let depotLocation = findFirstDepotLocation(setup, materialHotspotPosition, mineAxies);
     let masterDepotLocation = depotLocation.dup();
-    masterDepotLocation.translateOnAxis(mineAxis.x, setup.depotScale * floorWidth * -1);
-    masterDepotLocation.translateOnAxis(mineAxis.z, setup.depotScale * floorWidth * 10);
+    masterDepotLocation.translateOnAxis(mineAxies.x, setup.depotScale * floorWidth * -1);
+    masterDepotLocation.translateOnAxis(mineAxies.z, setup.depotScale * floorWidth * 10);
 
     let firstDepotPos = depotLocation.position.clone();
 
@@ -145,7 +146,7 @@ function createMine(setup, base){
     let depotRowCount = Math.ceil(setup.collectionPointCount / depotsPerRow);
     
     //add the generators
-    let generator = new nmsBasePart("^U_GENERATOR_S", userData, setup.powerHotspotPosition, materialHotspotVector, mineAxis.z, 0.01);
+    let generator = new nmsBasePart("^U_GENERATOR_S", userData, setup.powerHotspotPosition, materialHotspotVector, mineAxies.z, 0.01);
 
     for(let i = 0; i < generatorCount; i++){
         parts.push(generator);
@@ -175,7 +176,7 @@ function createMine(setup, base){
         if(setup.includeWires){
             parts = parts.concat(wireTo(extractor.pipePos, depot.pipePos, "^U_PIPELINE"));
             
-            if(setup.includeMasterDepots) parts = parts.concat(wireTo(depot.Position, getMasterCollectionPos(masterDepotLocation.position, i % (depotsPerRow * depotsPerRow), mineAxis), "^U_PIPELINE"));
+            if(setup.includeMasterDepots) parts = parts.concat(wireTo(depot.Position, getMasterCollectionPos(masterDepotLocation.position, i % (depotsPerRow * depotsPerRow), mineAxies), "^U_PIPELINE"));
         }
 
         if(i == 0){
@@ -189,22 +190,22 @@ function createMine(setup, base){
             //move the spawn points
             //at the end of each row we do this
             if((i + 1) % depotsPerRow == 0){
-                depotLocation.translateOnAxis(mineAxis.z, floorWidth * setup.depotScale);
-                depotLocation.translateOnAxis(mineAxis.x, (depotsPerRow - 1) * floorWidth * setup.depotScale * -1);
+                depotLocation.translateOnAxis(mineAxies.z, floorWidth * setup.depotScale);
+                depotLocation.translateOnAxis(mineAxies.x, (depotsPerRow - 1) * floorWidth * setup.depotScale * -1);
             }else{
                 //if it's not the end of a row we do this
-                depotLocation.translateOnAxis(mineAxis.x, floorWidth * setup.depotScale);
+                depotLocation.translateOnAxis(mineAxies.x, floorWidth * setup.depotScale);
             }
             
             //every 100 we do this
             if((i + 1) % (depotsPerRow * depotsPerRow) == 0){
-                depotLocation.translateOnAxis(mineAxis.z, floorWidth * 2 * setup.depotScale);
+                depotLocation.translateOnAxis(mineAxies.z, floorWidth * 2 * setup.depotScale);
 
-                masterDepotLocation.translateOnAxis(mineAxis.z, (depotsPerRow + 2) * floorWidth * setup.depotScale);
+                masterDepotLocation.translateOnAxis(mineAxies.z, (depotsPerRow + 2) * floorWidth * setup.depotScale);
             }
         }
         
-        extractorLocation.translateOnAxis(mineAxis.y, wallHeight);
+        extractorLocation.translateOnAxis(mineAxies.y, wallHeight);
 
         prevExtractor = extractor;
     }
@@ -212,35 +213,37 @@ function createMine(setup, base){
     let blockCount = Math.ceil(depotRowCount / depotsPerRow);
     let blockScale = (depotsPerRow + 2) * setup.depotScale;
     let blockWidth = blockScale * floorWidth;
-    let blockPlaceholder = new nmsBasePart(setup.floorObjectID, userData, firstDepotPos, mineAxis.y, mineAxis.z).scale(blockScale).translateOnAxis(mineAxis.z, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale).translateOnAxis(mineAxis.x, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale);
+    let blockPlaceholder = new nmsBasePart(setup.floorObjectID, userData, firstDepotPos, mineAxies.y, mineAxies.z).scale(blockScale).translateOnAxis(mineAxies.z, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale).translateOnAxis(mineAxies.x, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale);
 
-    //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxis.x).setAt(mineAxis.y).scale(depotsPerRow).translateOnAxis(mineAxis.z, blockWidth * -1));
-    //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxis.x.clone().negate()).setAt(mineAxis.y).scale(depotsPerRow).translateOnAxis(mineAxis.z, blockWidth * -1));
+    //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxies.x).setAt(mineAxies.y).scale(depotsPerRow).translateOnAxis(mineAxies.z, blockWidth * -1));
+    //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxies.x.clone().negate()).setAt(mineAxies.y).scale(depotsPerRow).translateOnAxis(mineAxies.z, blockWidth * -1));
 
     let roofObjectID = setup.includeRoof ? setup.roofObjectID : false;
     let wallObjectID = setup.includeWalls ? "^T_WALL_WIN3" : false;
 
-    parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxis.y, mineAxis.z, blockCount, setup.depotScale, setup.floorObjectID, roofObjectID, wallObjectID, userData));
+    parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, blockCount, setup.depotScale, setup.floorObjectID, roofObjectID, wallObjectID, userData));
 
-    blockPlaceholder.translateOnAxis(mineAxis.z, blockWidth * blockCount);
+    blockPlaceholder.translateOnAxis(mineAxies.z, blockWidth * blockCount);
 
-    let terminal = new nmsBasePart("^BUILDTERMINAL", userData, blockPlaceholder.Position, mineAxis.y, mineAxis.z.clone().negate()).translateOnAxis(mineAxis.z, ((blockWidth / 2) + (floorWidth / 4)) * -1);
+    let terminal = new nmsBasePart("^BUILDTERMINAL", userData, blockPlaceholder.Position, mineAxies.y, mineAxies.z.clone().negate()).translateOnAxis(mineAxies.z, ((blockWidth / 2) + (floorWidth / 4)) * -1);
     parts.push(terminal);
-    parts.push(terminal.clone("^BUILDSAVE").translateOnAxis(mineAxis.z, floorWidth / 2).rotateOnAxis(mineAxis.y, 180).translateOnAxis(mineAxis.x, floorWidth / 4));
-    if(setup.removeCurrentBaseParts) parts.push(terminal.clone("^BASE_FLAG").translateOnAxis(mineAxis.z, floorWidth / 2).rotateOnAxis(mineAxis.y, 225).setUserData(0).translateOnAxis(mineAxis.x, floorWidth / -4))
+    parts.push(terminal.clone("^BUILDSAVE").translateOnAxis(mineAxies.z, floorWidth / 2).rotateOnAxis(mineAxies.y, 180).translateOnAxis(mineAxies.x, floorWidth / 4));
+    if(setup.removeCurrentBaseParts) parts.push(terminal.clone("^BASE_FLAG").translateOnAxis(mineAxies.z, floorWidth / 2).rotateOnAxis(mineAxies.y, 225).setUserData(0).translateOnAxis(mineAxies.x, floorWidth / -4))
+
+    let extraBlockCount = 0;
 
     if(setup.includeFarms){
-        let bioScale = 1;
+        let bioScale = 1.5;
         let bioRadius = Math.min(4.5, 4.5 * bioScale);
         let bioWidth = 6 * bioScale * 2;
 
         let farmWidth = setup.farms.length * bioWidth;
 
-        let farmPlaceholder = blockPlaceholder.clone().translateOnAxis(mineAxis.x, (blockWidth / 2) + (bioWidth / 2)).translateOnAxis(mineAxis.z, Math.max((farmWidth / 2 - (bioWidth / 2)) * -1, (blockWidth / 2 - (bioWidth / 2)) * -1));
+        let farmPlaceholder = blockPlaceholder.clone().translateOnAxis(mineAxies.x, (blockWidth / 2) + (bioWidth / 2)).translateOnAxis(mineAxies.z, Math.max((farmWidth / 2 - (bioWidth / 2)) * -1, (blockWidth / 2 - (bioWidth / 2)) * -1));
 
-        //parts = parts.concat(getNewBlock(farmPlaceholder.Position, mineAxis.y, mineAxis.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
+        //parts = parts.concat(getNewBlock(farmPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
 
-        let dome = farmPlaceholder.clone("^BIOROOM").normalize().translateOnAxis(mineAxis.y, -0.45).setAt(mineAxis.x).scale(bioScale);
+        let dome = farmPlaceholder.clone("^BIOROOM").normalize().translateOnAxis(mineAxies.y, -0.45).setAt(mineAxies.x).scale(bioScale);
 
         for(let k = 0; k < setup.farms.length; k++){
             let farm = setup.farms[k];
@@ -248,60 +251,92 @@ function createMine(setup, base){
             let bioStep = (bioRadius - (wallHeight / 8)) / farm.length;
 
             parts.push(dome.clone());
-            parts.push(dome.clone("^FOUNDATION").translateOnAxis(mineAxis.y, -0.45));
+            parts.push(dome.clone("^FOUNDATION").translateOnAxis(mineAxies.y, -0.45));
     
-            let door = dome.clone("^DOOR2").translateOnAxis(mineAxis.y, 0.25 * bioScale).normalize().setAt(mineAxis.z).scale(bioScale);
-            if(k > 0) parts.push(door.clone().translateOnAxis(mineAxis.z, bioWidth / -2).invertAt());
-            if(k < setup.farms.length - 1) parts.push(door.clone().translateOnAxis(mineAxis.z, bioWidth / 2));
-            parts.push(door.clone().translateOnAxis(mineAxis.x, bioWidth / - 2).normalize().setAt(mineAxis.x).invertAt().scale(bioScale));
+            let door = dome.clone("^DOOR2").translateOnAxis(mineAxies.y, 0.25 * bioScale).normalize().setAt(mineAxies.z).scale(bioScale);
+            if(k > 0) parts.push(door.clone().translateOnAxis(mineAxies.z, bioWidth / -2).invertAt());
+            if(k < setup.farms.length - 1) parts.push(door.clone().translateOnAxis(mineAxies.z, bioWidth / 2));
+            parts.push(door.clone().translateOnAxis(mineAxies.x, bioWidth / - 2).normalize().setAt(mineAxies.x).invertAt().scale(bioScale));
             
-            //parts.push(door.clone().translateOnAxis(mineAxis.x, bioWidth).invertAt());
+            //parts.push(door.clone().translateOnAxis(mineAxies.x, bioWidth).invertAt());
     
-            let plant = dome.clone("^GRAVPLANT").normalize().scale(bioScale);
+            let plant = dome.clone("^GRAVPLANT").normalize().scale(Math.min(1, bioScale));
             for(let j = 0; j < farm.length; j++){
                 let item = farm[j];
     
-                parts = parts.concat(plant.clone(item.ObjectID).cloneOnCircle(item.count, (bioRadius - (bioStep * j)) * -1, mineAxis.y, 0, true));
+                parts = parts.concat(plant.clone(item.ObjectID).cloneOnCircle(item.count, (bioRadius - (bioStep * j)) * -1, mineAxies.y, 0, true));
             }
 
-            //let oldDome = dome.clone();
+            let oldDome = dome.clone();
 
-            if(k < setup.farms.length - 1) dome.translateOnAxis(mineAxis.z, bioWidth);
+            if(k < setup.farms.length - 1) dome.translateOnAxis(mineAxies.z, bioWidth);
 
-            //if(setup.includeWires && k < setup.farms.length - 1) parts = parts.concat(wireTo(dome.powerPos, oldDome.powerPos, "^U_POWERLINE", 300));
+            if(setup.includeWires && k < setup.farms.length - 1) parts = parts.concat(wireTo(dome.powerPos, oldDome.powerPos, "^U_POWERLINE", 300));
         }
 
         if(setup.includeWires) parts = parts.concat(wireTo(dome.powerPos, generator.powerPos, "^U_POWERLINE", 300));
     }
     
     if(setup.includePark){
-        parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxis.y, mineAxis.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
-
-        parts = parts.concat(blockPlaceholder.clone("^S_RUG0").normalize().scale(4).setJitter(0.05).cloneOnCircle(4, floorWidth * 1.5, mineAxis.y, 0, true, mineAxis.x));
-        let fire = blockPlaceholder.clone("^BASE_LAVA3").rotateOnAxis(mineAxis.x, 30).normalize().translateOnAxis(mineAxis.y, -0.75).scale(2);
-        parts = parts.concat(fire.cloneOnCircle(5, 1.5, mineAxis.y, 0, true, mineAxis.z));
-
-        parts = parts.concat(blockPlaceholder.clone("^BUILDSOFA").rotateOnAxis(mineAxis.y,180).normalize().cloneOnCircle(8, floorWidth * 1.25, mineAxis.y, -45, true, mineAxis.z));
-        parts = parts.concat(blockPlaceholder.clone("^BASE_COLDPLANT3").cloneOnCircle(4, 5 * floorWidth, mineAxis.y, -45, true));
+        parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
         
-        blockPlaceholder.translateOnAxis(mineAxis.z, blockWidth);
+        parts = parts.concat(blockPlaceholder.clone("^S_RUG0").normalize().scale(4).setJitter(0.05).cloneOnCircle(4, floorWidth * 1.5, mineAxies.y, 0, true, mineAxies.x));
+        let fire = blockPlaceholder.clone("^BASE_LAVA3").rotateOnAxis(mineAxies.x, 30).normalize().translateOnAxis(mineAxies.y, -0.75).scale(2);
+        parts = parts.concat(fire.cloneOnCircle(5, 1.5, mineAxies.y, 0, true, mineAxies.z));
+        
+        parts = parts.concat(blockPlaceholder.clone("^BUILDSOFA").rotateOnAxis(mineAxies.y,180).normalize().cloneOnCircle(8, floorWidth * 1.25, mineAxies.y, -45, true, mineAxies.z));
+        //parts = parts.concat(blockPlaceholder.clone("^BASE_COLDPLANT3").cloneOnCircle(4, 5 * floorWidth, mineAxies.y, -45, true));
+        //parts = parts.concat(blockPlaceholder.clone("^BUILDPAVINGTALL").normalize().translateOnAxis(mineAxies.y, -wallHeight * 1.5).scale(blockScale * 0.7).cloneOnCircle(4, 5 * floorWidth, mineAxies.y, -45, false));
+        
+        parts = parts.concat(blockPlaceholder.clone("^BASE_TREE02").setUserData(0).normalize().scale(4).cloneOnCircle(4, 7 * floorWidth, mineAxies.y, -45, true));
+        parts = parts.concat(blockPlaceholder.clone("^BUILDDOOR_WATER").normalize().scale(1.5).rotateOnAxis(mineAxies.x,90).translateOnAxis(mineAxies.z, 1.7 * 1.5).cloneOnCircle(4, 7.05 * floorWidth, mineAxies.y, -45, false, mineAxies.z));
+        
+        blockPlaceholder.translateOnAxis(mineAxies.z, blockWidth);
+        
+        extraBlockCount++;
     }
-
+    
     if(setup.includeLandingPads){
-        parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxis.y, mineAxis.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
-
-        let landingPad = blockPlaceholder.clone("^BUILDLANDINGPAD").invertAt().normalize().translateOnAxis(mineAxis.y, wallHeight / -4);
-    
-        parts = parts.concat(landingPad.cloneOnCircle(4, floorWidth * 3.5, mineAxis.y, -45));
-    
-        let teleport = blockPlaceholder.clone("^TELEPORTER").invertAt().translateOnAxis(mineAxis.z, (blockWidth / 2) - (floorWidth * 0.5)).normalize().scale(5).translateOnAxis(mineAxis.y, -2);
+        parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
+        
+        let landingPad = blockPlaceholder.clone("^BUILDLANDINGPAD").invertAt().normalize().translateOnAxis(mineAxies.y, wallHeight / -4);
+        
+        parts = parts.concat(landingPad.cloneOnCircle(4, floorWidth * 3.5, mineAxies.y, -45));
+        
+        let teleport = blockPlaceholder.clone("^TELEPORTER").invertAt().translateOnAxis(mineAxies.z, (blockWidth / 2) - (floorWidth * 0.5)).normalize().scale(5).translateOnAxis(mineAxies.y, -2);
         
         parts.push(teleport);
         
         if(setup.includeWires) parts = parts.concat(wireTo(generator.powerPos, teleport.powerPos, "^U_POWERLINE", 300));
+        
+        parts = parts.concat(blockPlaceholder.clone("^BASE_TREE02").setUserData(0).normalize().scale(4).cloneOnCircle(4, 7 * floorWidth, mineAxies.y, -45, true));
+        parts = parts.concat(blockPlaceholder.clone("^BUILDDOOR_WATER").normalize().scale(1.5).rotateOnAxis(mineAxies.x,90).translateOnAxis(mineAxies.z, 1.7 * 1.5).cloneOnCircle(4, 7.05 * floorWidth, mineAxies.y, -45, false, mineAxies.z));
+        
+        blockPlaceholder.translateOnAxis(mineAxies.z, blockWidth);
 
-        blockPlaceholder.translateOnAxis(mineAxis.z, blockWidth);
+        extraBlockCount++;
     }
+
+     /*parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
+    
+    let part = blockPlaceholder.clone().translateOnAxis(mineAxies.y, wallHeight).normalize();
+
+   parts = parts.concat(part.clone("^T_FLOOR").cloneOnAxis(mineAxies.z, 100, floorWidth));
+    parts = parts.concat(part.clone("^BASE_WPLANT3").cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
+    parts = parts.concat(part.clone("^WALLLIGHTWHITE").translateOnAxis(mineAxies.y, wallHeight).cloneOnAxis(mineAxies.z, 100, floorWidth / 4));
+    parts = parts.concat(part.clone("^L_FLOOR_Q").translateOnAxis(mineAxies.x, floorWidth / 2 + floorWidth / 4).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
+    parts = parts.concat(part.clone("^U_EXTRACTOR_S").translateOnAxis(mineAxies.x, floorWidth).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
+    parts = parts.concat(part.clone("^BUILDPAVINGTALL").translateOnAxis(mineAxies.x, floorWidth * -1).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
+    parts = parts.concat(part.clone("^BUILDLIGHTTABLE").translateOnAxis(mineAxies.x, floorWidth * -2).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
+
+    parts.push(blockPlaceholder.clone("^BUILDLIGHTTABLE").translateOnAxis(mineAxies.x, blockWidth).scale(4));
+    let tree = blockPlaceholder.clone("^BASE_TREE02").normalize().scale(4).translateOnAxis(mineAxies.x, (blockWidth / 2) - floorWidth).translateOnAxis(mineAxies.z, -1 * ((blockWidth * extraBlockCount) + (blockWidth / 2) - floorWidth));
+    let treePot = tree.clone("^BUILDDOOR_WATER").normalize().scale(1.5).rotateOnAxis(mineAxies.x,90).translateOnAxis(mineAxies.z, 1.7 * 1.5);
+
+    parts = parts.concat(tree.clone().setUserData(5).cloneOnAxis(mineAxies.z, 3 * extraBlockCount + 1, 0, (blockWidth * extraBlockCount) - floorWidth * 2))
+    parts = parts.concat(tree.clone().translateOnAxis(mineAxies.x, (blockWidth  - (floorWidth * 2)) * -1).setUserData(5).cloneOnAxis(mineAxies.z, 3 * extraBlockCount + 1, 0, (blockWidth * extraBlockCount) - floorWidth * 2))
+    parts = parts.concat(treePot.cloneOnAxis(mineAxies.z, 3 * extraBlockCount + 1, 0, (blockWidth * extraBlockCount )- floorWidth * 2))
+    parts = parts.concat(treePot.clone().translateOnAxis(mineAxies.x, (blockWidth  - (floorWidth * 2)) * -1).cloneOnAxis(mineAxies.z, 3 * extraBlockCount + 1, 0, (blockWidth * extraBlockCount )- floorWidth * 2))*/
 
     addTimestamps(parts);
 
@@ -317,6 +352,8 @@ function createMine(setup, base){
 
         base.Objects = base.Objects.concat(parts);
 
+        base.LastUpdateTimestamp = new Date() / 1000;
+
         return base;
     }
 
@@ -330,59 +367,59 @@ function getNewBlock(position, up, at, count, scale, floorObjectID, roofObjectID
 
     var floor = new nmsBasePart(floorObjectID || "^T_FLOOR", userData, position, up, at).normalize().invertUp().scale(depotsPerRow + 2).scale(scale);
     
-    var axis = {
+    var axies = {
         x:false,
         y: floor.toObject3D().up.clone().negate().normalize(),
         z: floor.toObject3D().at.clone().normalize()
     };
 
-    axis.x = axis.y.clone().applyAxisAngle(axis.z, 90 * Math.PI / 180);
+    axies.x = axies.y.clone().applyAxisAngle(axies.z, 90 * Math.PI / 180);
 
     for(let i = 0; i < count; i++){
         block.push(floor.clone());
         
-        block.push(floor.clone("^CUBEFRAME").scale(1.3).translateOnAxis(axis.y, -0.1));
+        block.push(floor.clone("^CUBEFRAME").scale(1.33).translateOnAxis(axies.y, -0.1));
     
         if(roofObjectID){
-            block.push(floor.clone(roofObjectID).invertUp().translateOnAxis(axis.y, wallHeight * 2 * scale));
+            block.push(floor.clone(roofObjectID).invertUp().translateOnAxis(axies.y, wallHeight * 2 * scale));
         }
 
-        floor.translateOnAxis(axis.z, blockWidth);
+        floor.translateOnAxis(axies.z, blockWidth);
     }
 
     if(wallObjectID){
         let wallCountX = (depotsPerRow / 2) + 1;
         let wallCountZ = (depotsPerRow * count / 2) + 1;
     
-        let wall = new nmsBasePart(wallObjectID, userData, position, up, at).normalize().scale(2 * scale).translateOnAxis(axis.z, blockWidth / -2 * scale).translateOnAxis(axis.x, (blockWidth / 2 - floorWidth) * scale * -1);
+        let wall = new nmsBasePart(wallObjectID, userData, position, up, at).normalize().scale(2 * scale).translateOnAxis(axies.z, blockWidth / -2 * scale).translateOnAxis(axies.x, (blockWidth / 2 - floorWidth) * scale * -1);
     
         for(let i = 0; i < wallCountX; i++){
             block.push(wall.clone());
     
             if(i == 2 || i == 3){
-                block.push(wall.clone("^T_DOOR").translateOnAxis(axis.z, blockWidth * count));
+                block.push(wall.clone("^T_DOOR").translateOnAxis(axies.z, blockWidth * count));
             }else{
-                block.push(wall.clone().translateOnAxis(axis.z, blockWidth * count));
+                block.push(wall.clone().translateOnAxis(axies.z, blockWidth * count));
             }
     
-            wall.translateOnAxis(axis.x, floorWidth * 2);
+            wall.translateOnAxis(axies.x, floorWidth * 2);
         }
         
-        wall.setAt(axis.x.clone().multiplyScalar(2).toArray());
-        wall.translateOnAxis(axis.x, floorWidth * -1).translateOnAxis(axis.z, floorWidth);
+        wall.setAt(axies.x.clone().multiplyScalar(2).toArray());
+        wall.translateOnAxis(axies.x, floorWidth * -1).translateOnAxis(axies.z, floorWidth);
     
         for(let i = 0; i < wallCountZ; i++){
             block.push(wall.clone());
-            block.push(wall.clone().translateOnAxis(axis.x, blockWidth * -1));
+            block.push(wall.clone().translateOnAxis(axies.x, blockWidth * -1));
     
-            wall.translateOnAxis(axis.z, floorWidth * 2);
+            wall.translateOnAxis(axies.z, floorWidth * 2);
         }
     }
 
     return block;
 }
 
-function getMasterCollectionPos(position, index, axis){
+function getMasterCollectionPos(position, index, axies){
     let rowNum = 0;
     let colNum = 0;
 
@@ -395,11 +432,11 @@ function getMasterCollectionPos(position, index, axis){
 
     obj.position.fromArray(position.toArray())
 
-    obj.translateOnAxis(axis.x, 4.5 * pipeWidth * -1);
-    obj.translateOnAxis(axis.z, 4.5 * pipeWidth * -1);
+    obj.translateOnAxis(axies.x, 4.5 * pipeWidth * -1);
+    obj.translateOnAxis(axies.z, 4.5 * pipeWidth * -1);
 
-    obj.translateOnAxis(axis.z, rowNum * pipeWidth);
-    obj.translateOnAxis(axis.x, colNum * pipeWidth);
+    obj.translateOnAxis(axies.z, rowNum * pipeWidth);
+    obj.translateOnAxis(axies.x, colNum * pipeWidth);
 
     return obj.position;
 }
@@ -468,8 +505,8 @@ function wireTo(startPos, endPos, ObjectID, lenLimit){
 }
 
 function addTimestamps(objects){
-    //let timestamp = (new Date() / 1000) - (60*60*24*7)
-    let timestamp = Math.round((new Date() / 1000) - (60*60))
+    let timestamp = (new Date() / 1000) - (60*60*24*7)
+    //let timestamp = Math.round((new Date() / 1000) - (60*60))
 
     for(let i = 0; i < objects.length; i++){
         let o = objects [i];
