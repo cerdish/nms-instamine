@@ -1,7 +1,13 @@
 <script setup>
     import { ref, reactive, defineExpose, computed } from 'vue'
-    import * as builder from '/src/js/baseBuilder.js';
+    import * as TropicalMine from '../js/TropicalMine';
     import * as _ from 'lodash';
+        
+    import * as IndustrialMine from "../js/IndustrialMine"
+
+    IndustrialMine.foo();
+
+    window.IndustrialMine = IndustrialMine
 
     const setup = reactive({
         base: "",
@@ -10,7 +16,7 @@
         materialHotspotVector: "0,1,0",
         powerHotspotPosition: "0,0,100",
         depotPosition: "",
-        collectionPointCount: 10,
+        pipelineCount: 10,
         depotDensity: 1,
         extractorDensity: 1,
         powerHotspotEfficiency: 100,
@@ -80,7 +86,7 @@
     }
 
     const createMine = () => {
-        let result = builder.createMine(setup);
+        let result = TropicalMine.createMine(setup);
 
         localStorage.setup = JSON.stringify(setup);
 
@@ -102,7 +108,7 @@
     const exctractMineSetup = () => {
         let base = JSON.parse(setup.base);
 
-        let newSetup = builder.exctractMineSetup(base);
+        let newSetup = TropicalMine.exctractMineSetup(base);
 
         Object.assign(setup, newSetup);
     }
@@ -285,7 +291,7 @@
                 <li>materialHotspotVector - Indicates the exact direction the hotspot points (generally not exactly vertical)</li>
                 <li>powerHotspotPosition - Location where the power hotspot exists</li>
                 <li>depotPosition - Position of the script will place the first depot (if blank the script will automatically place them)</li>
-                <li>collectionPointCount - The number of independent pipelines or modules the mine will contain (to avoid diminishing returns)</li>
+                <li>pipelineCount - The number of independent pipelines or modules the mine will contain (to avoid diminishing returns)</li>
                 <li>depotDensity - The number of depots placed at each collection point (10 depots per point will give 10k material)</li>
                 <li>extractorDensity - The number of extractors attached to each independent pipeline (to maximize returns)</li>
                 <li>powerHotspotEfficiency - The percent efficiency that the hotspot this mine is attached to (used to calculate the number of generators required)</li>

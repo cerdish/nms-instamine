@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as _ from 'lodash';
-import {nmsBasePart} from '/src/js/nmsBasePart.js';
+import {NmsBasePart} from './NmsBasePart';
 
 const wallHeight = 3.3333333333;
 const floorWidth = 5.3333333333;
@@ -123,7 +123,7 @@ function createMine(setup, base){
     //calculate generators needed to power the tower
     let powerPerGenerator = powerHotspotMax * (setup.powerHotspotEfficiency / 100);
 
-    let powerUsage = extractorPowerUse * setup.collectionPointCount * setup.extractorDensity
+    let powerUsage = extractorPowerUse * setup.pipelineCount * setup.extractorDensity
     //add 20 for the teleporter and 50 per farm
     if(setup.includeLandingPads) powerUsage += 20;
     if(setup.includeFarms) powerUsage += 50 * setup.farms.length;
@@ -143,10 +143,10 @@ function createMine(setup, base){
     let prevExtractor = false;
     let depot = false;
 
-    let depotRowCount = Math.ceil(setup.collectionPointCount / depotsPerRow);
+    let depotRowCount = Math.ceil(setup.pipelineCount / depotsPerRow);
     
     //add the generators
-    let generator = new nmsBasePart("^U_GENERATOR_S", userData, setup.powerHotspotPosition, materialHotspotVector, mineAxies.z, 0.01);
+    let generator = new NmsBasePart("^U_GENERATOR_S", userData, setup.powerHotspotPosition, materialHotspotVector, mineAxies.z, 0.01);
 
     for(let i = 0; i < generatorCount; i++){
         parts.push(generator);
@@ -154,22 +154,22 @@ function createMine(setup, base){
         generator = generator.clone();
     }
 
-    for(let i = 0; i < setup.collectionPointCount; i++){
+    for(let i = 0; i < setup.pipelineCount; i++){
         for(let j = 0; j < setup.extractorDensity; j++){
-            extractor = new nmsBasePart("^U_EXTRACTOR_S", userData, false, false, false, 0.01).applyLocation(extractorLocation).scale(2);
+            extractor = new NmsBasePart("^U_EXTRACTOR_S", userData, false, false, false, 0.01).applyLocation(extractorLocation).scale(2);
             if(setup.includeExtractors) parts.push(extractor);
         }
         
         for(let j = 0; j < setup.depotDensity; j++){
-            depot = new nmsBasePart("^U_SILO_S", userData, false, false, false, 0.01).applyLocation(depotLocation);
+            depot = new NmsBasePart("^U_SILO_S", userData, false, false, false, 0.01).applyLocation(depotLocation);
             if(setup.includeDepots) parts.push(depot);
         }
 
         //here set up the master depot location
         if(i % (depotsPerRow * depotsPerRow) == 0 && setup.includeMasterDepots){
-            parts.push(new nmsBasePart("^U_SILO_S", userData).applyLocation(masterDepotLocation));
+            parts.push(new NmsBasePart("^U_SILO_S", userData).applyLocation(masterDepotLocation));
 
-            parts.push(new nmsBasePart("^U_POWERLINE", userData).applyLocation(masterDepotLocation));
+            parts.push(new NmsBasePart("^U_POWERLINE", userData).applyLocation(masterDepotLocation));
         }
 
         
@@ -186,7 +186,7 @@ function createMine(setup, base){
         }
 
         //we don't move it on the last run so that we can get the correct bounding box for the depots (for adding floors)
-        if(i < setup.collectionPointCount -1){
+        if(i < setup.pipelineCount -1){
             //move the spawn points
             //at the end of each row we do this
             if((i + 1) % depotsPerRow == 0){
@@ -213,8 +213,10 @@ function createMine(setup, base){
     let blockCount = Math.ceil(depotRowCount / depotsPerRow);
     let blockScale = (depotsPerRow + 2) * setup.depotScale;
     let blockWidth = blockScale * floorWidth;
-    let blockPlaceholder = new nmsBasePart(setup.floorObjectID, userData, firstDepotPos, mineAxies.y, mineAxies.z).scale(blockScale).translateOnAxis(mineAxies.z, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale).translateOnAxis(mineAxies.x, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale);
+    let blockPlaceholder = new NmsBasePart(setup.floorObjectID, userData, firstDepotPos, mineAxies.y, mineAxies.z).scale(blockScale).translateOnAxis(mineAxies.z, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale).translateOnAxis(mineAxies.x, (blockWidth / 2) - 3 * floorWidth / 2 * setup.depotScale);
 
+    //parts.push(blockPlaceholder.clone("^BLD_SKULL").invertUp().translateOnAxis(mineAxies.y, -1).translateOnAxis(mineAxies.x, 3 * floorWidth).scaleTo(3));
+    //parts.push(blockPlaceholder.clone("^SMALLLIGHT").invertUp().translateOnAxis(mineAxies.y, -1).translateOnAxis(mineAxies.x, -3 * floorWidth).scaleTo(3));
     //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxies.x).setAt(mineAxies.y).scale(depotsPerRow).translateOnAxis(mineAxies.z, blockWidth * -1));
     //parts.push(blockPlaceholder.clone("^T_WALL_Q1").normalize().setUp(mineAxies.x.clone().negate()).setAt(mineAxies.y).scale(depotsPerRow).translateOnAxis(mineAxies.z, blockWidth * -1));
 
@@ -225,7 +227,7 @@ function createMine(setup, base){
 
     blockPlaceholder.translateOnAxis(mineAxies.z, blockWidth * blockCount);
 
-    let terminal = new nmsBasePart("^BUILDTERMINAL", userData, blockPlaceholder.Position, mineAxies.y, mineAxies.z.clone().negate()).translateOnAxis(mineAxies.z, ((blockWidth / 2) + (floorWidth / 4)) * -1);
+    let terminal = new NmsBasePart("^BUILDTERMINAL", userData, blockPlaceholder.Position, mineAxies.y, mineAxies.z.clone().negate()).translateOnAxis(mineAxies.z, ((blockWidth / 2) + (floorWidth / 4)) * -1);
     parts.push(terminal);
     parts.push(terminal.clone("^BUILDSAVE").translateOnAxis(mineAxies.z, floorWidth / 2).rotateOnAxis(mineAxies.y, 180).translateOnAxis(mineAxies.x, floorWidth / 4));
     if(setup.removeCurrentBaseParts) parts.push(terminal.clone("^BASE_FLAG").translateOnAxis(mineAxies.z, floorWidth / 2).rotateOnAxis(mineAxies.y, 225).setUserData(0).translateOnAxis(mineAxies.x, floorWidth / -4))
@@ -317,13 +319,14 @@ function createMine(setup, base){
         extraBlockCount++;
     }
 
-     /*parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
+    parts = parts.concat(getNewBlock(blockPlaceholder.Position, mineAxies.y, mineAxies.z, 1, setup.depotScale, setup.floorObjectID, false, false, userData));
     
-    let part = blockPlaceholder.clone().translateOnAxis(mineAxies.y, wallHeight).normalize();
+    let part = blockPlaceholder.clone().normalize();
 
-   parts = parts.concat(part.clone("^T_FLOOR").cloneOnAxis(mineAxies.z, 100, floorWidth));
-    parts = parts.concat(part.clone("^BASE_WPLANT3").cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
-    parts = parts.concat(part.clone("^WALLLIGHTWHITE").translateOnAxis(mineAxies.y, wallHeight).cloneOnAxis(mineAxies.z, 100, floorWidth / 4));
+    parts = parts.concat(part.clone("^T_FLOOR").cloneOnAxis(mineAxies.z, 256 / 2, floorWidth));
+    parts = parts.concat(part.clone("^U_EXTRACTOR_S").cloneOnAxis(mineAxies.z, 256, floorWidth / 2));
+
+    /*parts = parts.concat(part.clone("^WALLLIGHTWHITE").translateOnAxis(mineAxies.y, wallHeight).cloneOnAxis(mineAxies.z, 100, floorWidth / 4));
     parts = parts.concat(part.clone("^L_FLOOR_Q").translateOnAxis(mineAxies.x, floorWidth / 2 + floorWidth / 4).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
     parts = parts.concat(part.clone("^U_EXTRACTOR_S").translateOnAxis(mineAxies.x, floorWidth).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
     parts = parts.concat(part.clone("^BUILDPAVINGTALL").translateOnAxis(mineAxies.x, floorWidth * -1).cloneOnAxis(mineAxies.z, 100, floorWidth / 2));
@@ -365,7 +368,7 @@ function getNewBlock(position, up, at, count, scale, floorObjectID, roofObjectID
 
     var blockWidth = floorWidth * (depotsPerRow + 2) * scale
 
-    var floor = new nmsBasePart(floorObjectID || "^T_FLOOR", userData, position, up, at).normalize().invertUp().scale(depotsPerRow + 2).scale(scale);
+    var floor = new NmsBasePart(floorObjectID || "^T_FLOOR", userData, position, up, at).normalize().invertUp().scale(depotsPerRow + 2).scale(scale);
     
     var axies = {
         x:false,
@@ -378,7 +381,7 @@ function getNewBlock(position, up, at, count, scale, floorObjectID, roofObjectID
     for(let i = 0; i < count; i++){
         block.push(floor.clone());
         
-        block.push(floor.clone("^CUBEFRAME").scale(1.33).translateOnAxis(axies.y, -0.1));
+        block.push(floor.clone("^CUBEFRAME").scale(1.33333).translateOnAxis(axies.y, -0.1));
     
         if(roofObjectID){
             block.push(floor.clone(roofObjectID).invertUp().translateOnAxis(axies.y, wallHeight * 2 * scale));
@@ -391,7 +394,7 @@ function getNewBlock(position, up, at, count, scale, floorObjectID, roofObjectID
         let wallCountX = (depotsPerRow / 2) + 1;
         let wallCountZ = (depotsPerRow * count / 2) + 1;
     
-        let wall = new nmsBasePart(wallObjectID, userData, position, up, at).normalize().scale(2 * scale).translateOnAxis(axies.z, blockWidth / -2 * scale).translateOnAxis(axies.x, (blockWidth / 2 - floorWidth) * scale * -1);
+        let wall = new NmsBasePart(wallObjectID, userData, position, up, at).normalize().scale(2 * scale).translateOnAxis(axies.z, blockWidth / -2 * scale).translateOnAxis(axies.x, (blockWidth / 2 - floorWidth) * scale * -1);
     
         for(let i = 0; i < wallCountX; i++){
             block.push(wall.clone());
@@ -489,7 +492,7 @@ function wireTo(startPos, endPos, ObjectID, lenLimit){
 
         let wireAtVector = new THREE.Vector3().subVectors(segmentEnd.position, segmentStart.position);
 
-        let wire = new nmsBasePart(ObjectID, 0);
+        let wire = new NmsBasePart(ObjectID, 0);
         wire.Position = [segmentStart.position.x, segmentStart.position.y, segmentStart.position.z];
         wire.At = [wireAtVector.x, wireAtVector.y, wireAtVector.z];
 
@@ -534,7 +537,7 @@ function exctractMineSetup(base){
     setup.powerHotspotPosition = generator.Position.join(",");
 
     //setup.powerHotspotEfficiency = 100;
-    //setup.collectionPointCount = 10;
+    //setup.pipelineCount = 10;
 
     setup.baseName = base.Name
 

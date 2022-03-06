@@ -5,12 +5,31 @@ const powerOffsets = {
     "^U_MINIPORTAL":[0, 0.6, -1.55],
     "^BIOROOM":[4.55, 0.45, 4.55]
 };
+
 const pipeOffsets = {
     "^U_EXTRACTOR_S":[0, 0.3, 1]
 };
+
 const teleOffsets = {};
 
-class nmsBasePart{
+const doorOffsets = {
+    "^BIOROOM":[0, 0.25, 3],
+    "^CUBEGLASS":[0, 0.25, 2]
+};
+
+const doorObjectIDs = {};
+
+const objectSizes = {
+    "^U_EXTRACTOR_S":[3.33333,6.66666,3.33333],
+    "^U_SILO_S":[5.33333,6.66666,5.33333],
+    "^CUBEGLASS":[4,4,4],
+    "^CUBEFRAME":[4,4,4],
+    "^F_FLOOR":[5.33333,0.25,5.33333]
+};
+
+const defaultSize = [5.33333, 3.33333, 5.33333];
+
+class NmsBasePart{
     Timestamp = 0;
     ObjectID = 0;
     UserData = 0;
@@ -42,13 +61,7 @@ class nmsBasePart{
 
         let obj = this.#object3D.clone();
 
-        let axies = {
-            x: false,
-            y: this.#object3D.up.clone().normalize(),
-            z: this.#object3D.at.clone().normalize()
-        };
-
-        axies.x = axies.z.clone().applyAxisAngle(axies.y, 90 * Math.PI / 180);
+        let axies = this.getAxies();
 
         //console.log(this.ObjectID, axies)
         
@@ -87,6 +100,47 @@ class nmsBasePart{
         obj.translateOnAxis(atVector, offset[2]);
 
         return obj.position.toArray();
+    }
+
+    get width(){
+        let size = objectSizes[this.ObjectID] || defaultSize;
+
+        return size[0] * this.#scale;
+    }
+
+    get height(){
+        let size = objectSizes[this.ObjectID] || defaultSize;
+
+        return size[1] * this.#scale;
+    }
+
+    getAxies(){
+        let axies = {
+            x: false,
+            y: this.#object3D.up.clone().normalize(),
+            z: this.#object3D.at.clone().normalize()
+        };
+
+        axies.x = axies.z.clone().applyAxisAngle(axies.y, 90 * Math.PI / 180);
+
+        return axies;
+    }
+
+    getDoor(doorIndex){
+        doorIndex = doorIndex || 0;
+
+        let offset = doorOffsets[this.ObjectID] || [0, 0, 4];
+
+        let axies = this.getAxies();
+
+        let door = this.clone(doorObjectIDs[this.ObjectID] || "^DOOR2");
+
+        door.translateOnAxis(axies.x, offset[0] * this.#scale);
+        door.translateOnAxis(axies.y, offset[1] * this.#scale);
+
+        let doors = door.cloneOnCircle(4, offset[2] * this.#scale, axies.y, true, axies.z);
+
+        return doors[doorIndex];
     }
 
     addJitter(jitterCoefficient){
@@ -197,17 +251,18 @@ class nmsBasePart{
     clone(ObjectID){
         ObjectID = ObjectID || this.ObjectID
 
-        let clone = new nmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+        let clone = new NmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
 
         return clone.scaleTo(this.#scale);
     }
 
-    cloneOnCircle(count, radius, axis, offset, rotateClones, moveAxis){
+    cloneOnCircle(count, radius, axis, offset, rotateClones, moveAxis, totalDegrees){
         offset = offset || 0;
+        totalDegrees = totalDegrees || 360;
 
         var offsetRads = offset * Math.PI / 180;
         
-        var degreesPerStep = 360 / count;
+        var degreesPerStep = totalDegrees / count;
         var radsPerStep = degreesPerStep * Math.PI / 180;
 
         var clones = [];
@@ -245,10 +300,12 @@ class nmsBasePart{
         for(let i = 0; i < count; i++){
             let totalOffset = i * offset;
 
-            let userData = "1" + "0".repeat(i);
+            let userData = "1000000000000000000" + (("00000000" + i.toString(2)).slice(-8));
+            //let userData = "1" + "0".repeat(i) + "0000000000000000000000";
+            //let userData = i.toString(2) + "000000000000000000000000000000000000000000000000000000";
             userData = parseInt(userData, 2);
 
-            clones.push(this.clone().translateOnAxis(axis, totalOffset))//.setUserData(userData));
+            clones.push(this.clone().translateOnAxis(axis, totalOffset).setUserData(userData));
         }
 
         return clones;
@@ -333,4 +390,4 @@ function getVectorArray(vector){
     return vector;
 }
 
-export { nmsBasePart };
+export { NmsBasePart };
