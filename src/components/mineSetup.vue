@@ -59,7 +59,10 @@
     }
 
     const createMine = () => {
-        let result = NmsMine.create(setup);
+        let baseSetup = JSON.parse(JSON.stringify(setup));
+        baseSetup.base = JSON.parse(baseSetup.base);
+
+        let result = NmsMine.create(baseSetup);
 
         let extractors = _.filter(result.Objects, {ObjectID: "^U_EXTRACTOR_S"});
 
