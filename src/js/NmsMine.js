@@ -8,7 +8,7 @@ const factoryFloorScale = depotsPerRow + 2;
 
 const blockScale = 12;
 
-function createMine(setup){
+function create(setup){
     let base = new NmsBase();
 
     base.orientFromBase(setup.base, "^U_EXTRACTOR_S", "^U_GENERATOR_S");
@@ -24,13 +24,11 @@ function createMine(setup){
     let depotBlock = createBlock(depotBlockPos, base.axies.y, base.axies.z, factoryFloorScale, "^F_FLOOR", "^F_WALL_WINDOW", "^F_GDOOR", "^F_ROOF6", "^CUBEFRAME");
     base.addParts(depotBlock);
 
-    setup.base.Objects = base.Objects;
+    let createdBase = JSON.parse(JSON.stringify(setup.base));
+
+    createdBase.Objects = base.Objects;
     
-    return JSON.stringify(setup.base);
+    return setup.base;
 }
 
-function foo(){
-    return "bar";
-}
-
-export { createMine, foo };
+export { create };

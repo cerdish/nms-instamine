@@ -1,0 +1,56 @@
+<script setup>
+    import {defineProps, ref} from "vue";
+
+    const props = defineProps({
+        modelValue: {}
+    })
+
+    const id = ref("input-" + (Math.random()+"").replace(/\./g,"-"));
+</script>
+
+<template>
+    <div class="input-wrapper">
+        <label :for="$attrs.id || id">
+            <slot></slot>
+        </label>
+
+        <div class="input-parent">
+            <textarea v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
+
+            <input v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
+            
+            <div class="input-note" v-if="$slots.note">
+                <slot name="note"></slot>
+            </div>
+        </div>
+    </div>
+
+</template>
+
+<style scoped>
+    .input-wrapper{
+        display:flex;
+        margin:0.5rem;
+    }
+    .input-wrapper > label{
+        flex:0 1 200px;
+        padding-right:0.5rem;
+        padding-top:0.25rem;
+    }
+    .input-wrapper > .input-parent{
+        flex:0 1 400px;
+    }
+    .input-wrapper textarea{
+        width:100%;
+        height:400px;
+    }
+
+    .input-wrapper input{
+        width:100%;
+        padding:0.25rem;
+    }
+    .input-note{
+        font-size:0.8em;
+        margin-top:0.25rem;
+    }
+</style>

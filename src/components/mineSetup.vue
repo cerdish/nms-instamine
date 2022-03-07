@@ -1,39 +1,28 @@
 <script setup>
     import { ref, reactive, defineExpose, computed } from 'vue'
-    import * as TropicalMine from '../js/TropicalMine';
     import * as _ from 'lodash';
-        
-    import * as IndustrialMine from "../js/IndustrialMine"
-
-    IndustrialMine.foo();
-
-    window.IndustrialMine = IndustrialMine
+    import * as NmsMine from "../js/NmsMine";
+    import baseInput from './baseInput.vue';
+    import baseCheckbox from './baseCheckbox.vue';
 
     const setup = reactive({
         base: "",
-        baseName: "",
-        materialHotspotPosition: "0,0,0",
-        materialHotspotVector: "0,1,0",
-        powerHotspotPosition: "0,0,100",
-        depotPosition: "",
         pipelineCount: 10,
-        depotDensity: 1,
         extractorDensity: 1,
+        depotDensity: 1,
         powerHotspotEfficiency: 100,
-        userData: 0,
-        floorObjectID: "^T_FLOOR",
-        roofObjectID: "^T_GFLOOR",
-        depotScale: 1,
+        userData: [
+            {ObjectID:"", value:0}
+        ],
+        includeGenerators: true,
         includeExtractors: true,
         includeDepots: true,
         includeMasterDepots: true,
         includeWires: true,
-        includeRoof: false,
-        includeWalls: false,
         includeLandingPads: true,
         includePark: true,
-        includeFarms: true,
-        farms:[
+        includeBioDomes: true,
+        bioDomes:[
             [
                 {ObjectID:"^LUSHPLANT", count:46},
                 {ObjectID:"^RADIOPLANT", count:46},
@@ -50,11 +39,8 @@
                 {ObjectID:"^SNOWPLANT", count:12},
                 {ObjectID:"^CREATUREPLANT", count:6}
             ]
-        ],
-        removeCurrentBaseParts: true
+        ]
     });
-
-    const setups = reactive({});
 
     const state = reactive({
         output: "",
@@ -62,84 +48,101 @@
         projectedStorage: 0,
         projectedExtractionRate: 0
     });
-
-    const savedSetupOptions = computed(function(){
-        return Object.keys(setups)
-    });
-
-    const checkboxFields = ['includeRoof','includeWires','includeDepots','removeCurrentBaseParts','includeExtractors','includeMasterDepots','includeWalls','includeLandingPads','includePark','includeFarms'];
     
     const outputEl = ref(null);
-
     defineExpose({ outputEl });
 
     if(localStorage.setup){
         let storedSetup = JSON.parse(localStorage.setup);
 
-        Object.assign(setup, storedSetup);
-    }
-
-    if(localStorage.setups){
-        let storedSetups = JSON.parse(localStorage.setups);
-
-        Object.assign(setups, storedSetups);
+        //Object.assign(setup, storedSetup);
     }
 
     const createMine = () => {
-        let result = TropicalMine.createMine(setup);
+        let result = NmsMine.create(setup);
 
-        localStorage.setup = JSON.stringify(setup);
+        let extractors = _.filter(result.Objects, {ObjectID: "^U_EXTRACTOR_S"});
 
+        let depots = _.filter(result.Objects, {ObjectID: "^U_SILO_S"});
+        
         state.output = JSON.stringify(result, null, 2);
-
-        let objects = _.isArray(result) ? result : result.Objects
-
-        state.partCount = objects.length;
-
-        let extractors = _.filter(objects, {ObjectID: "^U_EXTRACTOR_S"});
-
-        let depots = _.filter(objects, {ObjectID: "^U_SILO_S"});
-
+        state.partCount = result.Objects.length;
         state.projectedStorage = (depots.length * 1000) + (extractors.length * 250);
-
         state.projectedExtractionRate = extractors.length * 625
-    }
-
-    const exctractMineSetup = () => {
-        let base = JSON.parse(setup.base);
-
-        let newSetup = TropicalMine.exctractMineSetup(base);
-
-        Object.assign(setup, newSetup);
-    }
-
-    const saveSetup = () => {
-        let name = prompt("Enter a name for the setup:");
-
-        if(!name) return false;
-
-        setups[name] = setup;
-
-        localStorage.setups = JSON.stringify(setups);
 
         localStorage.setup = JSON.stringify(setup);
-
-        state.output = JSON.stringify(setup);
-    }
-
-    const loadSetup = (e) => {
-        let name = e.target.value;
-
-        let storedSetups = JSON.parse(localStorage.setups);
-
-        console.log(storedSetups[name])
-
-        Object.assign(setup, storedSetups[name]);
     }
 </script>
 
 <template>
-    <div class="flex">
+    <form @submit.prevent = "createMine()">
+        <base-input v-model="setup.base" type="textarea">
+            base
+        </base-input>
+
+        <base-input v-model="setup.pipelineCount">
+            pipeline count
+        </base-input>
+
+        <base-input v-model="setup.extractorDensity">
+            extractor density
+        </base-input>
+
+        <base-input v-model="setup.pipelineCount">
+            depot density
+        </base-input>
+
+        <base-input v-model="setup.powerHotspotEfficiency">
+            power hotspot efficiency
+        </base-input>
+
+        <div>
+            <base-checkbox v-model="setup.includeGenerators">
+                include generators
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeExtractors">
+                include extractors
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeDepots">
+                include depots
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeMasterDepots">
+                include depots
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeMasterDepots">
+                include master depots
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeWires">
+                include wires
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeLandingPads">
+                include landing pads
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includePark">
+                include park
+            </base-checkbox>
+
+            <base-checkbox v-model="setup.includeBioDomes">
+                include bio domes
+            </base-checkbox>
+
+            <div>
+                <button>Create Mine</button>
+            </div>
+        </div>
+    </form>
+
+    <div>
+        <textarea v-model="state.output"></textarea>
+    </div>
+    <!---div class="flex">
         <form @submit.prevent = "createMine()">
             <div class="flex">
                 <div>
@@ -297,20 +300,5 @@
                 <li>powerHotspotEfficiency - The percent efficiency that the hotspot this mine is attached to (used to calculate the number of generators required)</li>
             </ul>
         </div>
-    </div>
+    </div--->
 </template>
-
-<style scoped>
-    textarea{
-        height:400px; width:610px;
-    }
-    input[type=text]{
-        width:400px;
-    }
-    *{
-        vertical-align: top;
-    }
-    li{
-        padding:3px;
-    }
-</style>
