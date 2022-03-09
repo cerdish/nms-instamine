@@ -1,8 +1,9 @@
 <script setup>
-    import {defineProps, ref} from "vue";
+    import {ref} from "vue";
 
     const props = defineProps({
-        modelValue: {}
+        modelValue: {},
+        inputWidth:{}
     })
 
     const id = ref("input-" + (Math.random()+"").replace(/\./g,"-"));
@@ -10,11 +11,11 @@
 
 <template>
     <div class="input-wrapper">
-        <label :for="$attrs.id || id">
+        <label :for="$attrs.id || id" v-if="$slots.default">
             <slot></slot>
         </label>
 
-        <div class="input-parent">
+        <div class="input-parent" :style="{width: inputWidth}">
             <textarea v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
 
             <input v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
@@ -31,6 +32,7 @@
     .input-wrapper{
         display:flex;
         margin:0.5rem;
+        max-width:650px;
     }
     .input-wrapper > label{
         flex:0 1 200px;
@@ -38,16 +40,17 @@
         padding-top:0.25rem;
     }
     .input-wrapper > .input-parent{
-        flex:0 1 400px;
+        flex:1;
     }
     .input-wrapper textarea{
         width:100%;
-        height:400px;
+        height:200px;
+        font-size:inherit;
     }
-
     .input-wrapper input{
         width:100%;
         padding:0.25rem;
+        font-size:inherit;
     }
     .input-note{
         font-size:0.8em;

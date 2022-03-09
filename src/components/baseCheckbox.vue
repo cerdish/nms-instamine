@@ -1,5 +1,5 @@
 <script setup>
-    import {defineProps, ref} from "vue";
+    import {ref} from "vue";
 
     const props = defineProps({
         modelValue: {}
@@ -23,7 +23,7 @@
 <style scoped>
     .checkbox-wrapper{
         display:inline-flex;
-        margin:0.5rem;
+        margin:0 0 0.5rem 0.5rem;
         border:1px solid #ddd;
     }
     .checkbox-wrapper > label{

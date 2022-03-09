@@ -24,7 +24,12 @@ const objectSizes = {
     "^U_SILO_S":[5.33333,6.66666,5.33333],
     "^CUBEGLASS":[4,4,4],
     "^CUBEFRAME":[4,4,4],
-    "^F_FLOOR":[5.33333,0.25,5.33333]
+    "^CUBEFOUND4":[4,-0.25,4],
+    "^F_FLOOR":[5.33333,0.3,5.33333],
+    "^T_GFLOOR":[5.33333,0.3,5.33333],
+    "^T_FLOOR":[5.33333,0.25,5.33333],
+    "^BASE_FLAG":[5.33333/2, 3.33333/2, 5.33333/2],
+    "^BUILDTERMINAL":[5.33333, 3.33333/2, 5.33333/2]
 };
 
 const defaultSize = [5.33333, 3.33333, 5.33333];
@@ -114,6 +119,24 @@ class NmsBasePart{
         return size[1] * this.#scale;
     }
 
+    get depth(){
+        let size = objectSizes[this.ObjectID] || defaultSize;
+
+        return size[2] * this.#scale;
+    }
+
+    get up(){
+        return new THREE.Vector3().fromArray(this.Up);
+    }
+
+    get at(){
+        return new THREE.Vector3().fromArray(this.At);
+    }
+
+    get position(){
+        return new THREE.Vector3().fromArray(this.Position);
+    }
+
     getAxies(){
         let axies = {
             x: false,
@@ -146,12 +169,14 @@ class NmsBasePart{
     addJitter(jitterCoefficient){
         if(typeof(jitterCoefficient) == 'undefined') jitterCoefficient = this.#jitterCoefficient;
 
-        if(jitterCoefficient) console.log("add jitter", this.ObjectID, jitterCoefficient);
+        if(jitterCoefficient){
+            //console.log("add jitter", this.ObjectID, jitterCoefficient);
 
-        this.Position = jitterEach(this.Position, jitterCoefficient);
-        this.Up = jitterEach(this.Up, jitterCoefficient);
-        this.At = jitterEach(this.At, jitterCoefficient);
-
+            this.Position = jitterEach(this.Position, jitterCoefficient);
+            this.Up = jitterEach(this.Up, jitterCoefficient);
+            this.At = jitterEach(this.At, jitterCoefficient);
+        }
+        
         return this;
     }
 
@@ -248,12 +273,21 @@ class NmsBasePart{
         return this;
     }
 
-    clone(ObjectID){
-        ObjectID = ObjectID || this.ObjectID
+    clone(ObjectID, count){
+        ObjectID = ObjectID || this.ObjectID;
+        count = count || 1;
 
-        let clone = new NmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+        let clones = [];
 
-        return clone.scaleTo(this.#scale);
+        for(let i = 0; i < count; i++){
+            let clone = new NmsBasePart(ObjectID, this.UserData, this.#object3D.position.toArray(), this.#object3D.up.toArray(), this.#object3D.at.toArray(), this.#jitterCoefficient);
+    
+            clone.scaleTo(this.#scale);
+
+            clones.push(clone);
+        }
+
+        return count == 1 ? clones[0] : clones;
     }
 
     cloneOnCircle(count, radius, axis, offset, rotateClones, moveAxis, totalDegrees){
@@ -305,7 +339,7 @@ class NmsBasePart{
             //let userData = i.toString(2) + "000000000000000000000000000000000000000000000000000000";
             userData = parseInt(userData, 2);
 
-            clones.push(this.clone().translateOnAxis(axis, totalOffset).setUserData(userData));
+            clones.push(this.clone().translateOnAxis(axis, totalOffset))//.setUserData(userData));
         }
 
         return clones;

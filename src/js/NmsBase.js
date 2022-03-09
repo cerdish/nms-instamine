@@ -15,15 +15,16 @@ class NmsBase{
         if(Name) this.Name = Name;
     }
 
-    orientFromBase(base, ObjectID1, ObjectID2){
-        let part1 = _.find(base.Objects, {ObjectID:ObjectID1});
-        let part2 = _.find(base.Objects, {ObjectID:ObjectID2});
+    orientFromParts(part1, part2){
+        let obj1 = part1.toObject3D();
+        let obj2 = part2.toObject3D();
 
-        part1 = new NmsBasePart(part1.ObjectID, 0, part1.Position, part1.Up, part1.At).toObject3D();
-        part2 = new NmsBasePart(part2.ObjectID, 0, part2.Position, part2.Up, part2.At).toObject3D();
+        this.orient(obj1.up, obj1.position, obj2.position);
 
-        this.orient(part1.up, part1.position, part2.position);
-    
+        part1.setUp(this.axies.y).setAt(this.axies.z);
+
+        part2.setUp(this.axies.y).setAt(this.axies.z);
+
         return this;
     }
 
@@ -68,6 +69,24 @@ class NmsBase{
         //console.log(part);
 
         return part;
+    }
+
+    applyUserData(userDataArray){
+        for(let i = 0; i < userDataArray.length; i++){
+            let objects = this.Objects;
+
+            if(userDataArray[i].ObjectID){
+                objects = _.filter(objects, {ObjectID: userDataArray[i].ObjectID});
+            }
+
+            console.log(userDataArray[i])
+
+            objects.forEach((object) => {
+                object.UserData = parseInt(userDataArray[i].UserData);
+            });
+        }
+
+        return this;
     }
 }
 

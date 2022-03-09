@@ -1,18 +1,21 @@
 <script setup>
-    import { ref, reactive, defineExpose, computed } from 'vue'
+    import { ref, reactive, computed } from 'vue'
     import * as _ from 'lodash';
-    import * as NmsMine from "../js/NmsMine";
+    import * as NmsMine from "../js/NmsMineType2";
     import baseInput from './baseInput.vue';
     import baseCheckbox from './baseCheckbox.vue';
+    import { saveAs } from 'file-saver'
 
     const setup = reactive({
         base: "",
         pipelineCount: 10,
         extractorDensity: 1,
         depotDensity: 1,
+        depotsPerRow: 10,
         powerHotspotEfficiency: 100,
-        userData: [
-            {ObjectID:"", value:0}
+        userDataArray: [
+            {ObjectID:"", UserData:1},
+            {ObjectID:"^BASE_FLAG", UserData:0}
         ],
         includeGenerators: true,
         includeExtractors: true,
@@ -55,7 +58,7 @@
     if(localStorage.setup){
         let storedSetup = JSON.parse(localStorage.setup);
 
-        //Object.assign(setup, storedSetup);
+        Object.assign(setup, storedSetup);
     }
 
     const createMine = () => {
@@ -75,6 +78,18 @@
 
         localStorage.setup = JSON.stringify(setup);
     }
+
+    const exportMineSetup = () => {
+        let json = JSON.stringify(setup, null, 2);
+
+        let blob = new Blob([json], {type: "application/json"});
+
+        let base = JSON.parse(setup.base);
+
+        let filename = base.Name + "_" + Math.round(new Date() / 1000) + ".nms.json"
+
+        saveAs(blob, filename);
+    }
 </script>
 
 <template>
@@ -91,13 +106,39 @@
             extractor density
         </base-input>
 
-        <base-input v-model="setup.pipelineCount">
+        <base-input v-model="setup.depotDensity">
             depot density
+        </base-input>
+
+        <base-input v-model="setup.depotsPerRow">
+            depots per row
         </base-input>
 
         <base-input v-model="setup.powerHotspotEfficiency">
             power hotspot efficiency
         </base-input>
+
+        <div class="card">
+            UserData
+
+            <button class="bg-color1" type="button" @click="setup.userDataArray.push({ObjectID:'', UserData:0})"><span class="material-icons">add</span></button>
+            
+            <div v-for="obj,i in setup.userDataArray" :key="i" class="card flex smaller">
+                <div class="item-flex">
+                    <base-input v-model="obj.ObjectID">
+                        ObjectID
+                    </base-input>
+
+                    <base-input v-model="obj.UserData">
+                        UserData
+                    </base-input>
+                </div>
+                
+                <div>
+                    <button type="button" class="bg-error" @click="setup.userDataArray.splice(i, 1)"><span class="material-icons">delete</span></button>
+                </div>
+            </div>
+        </div>
 
         <div>
             <base-checkbox v-model="setup.includeGenerators">
@@ -109,10 +150,6 @@
             </base-checkbox>
 
             <base-checkbox v-model="setup.includeDepots">
-                include depots
-            </base-checkbox>
-
-            <base-checkbox v-model="setup.includeMasterDepots">
                 include depots
             </base-checkbox>
 
@@ -135,15 +172,55 @@
             <base-checkbox v-model="setup.includeBioDomes">
                 include bio domes
             </base-checkbox>
+        </div>
 
-            <div>
-                <button>Create Mine</button>
+        <div class="card" v-if="setup.includeBioDomes">
+            Bio Domes
+
+            <button class="bg-color1" type="button" @click="setup.bioDomes.push([{ObjectID:'^GRAVPLANT', count:20}])"><span class="material-icons">add</span></button>
+            
+            
+            <div v-for="bioDome,b in setup.bioDomes" :key="b" class="card smaller">
+                Bio Dome {{b + 1}} Crops
+
+                <button class="bg-color1" type="button" @click="setup.bioDomes[b].push({ObjectID:'^GRAVPLANT', count:20})"><span class="material-icons">add</span></button>
+                
+                <button class="bg-error" type="button" @click="setup.bioDomes.splice(b, 1)"><span class="material-icons">delete</span></button>
+
+                <div v-for="crop,c in bioDome" :key="c" class="card flex">
+                    <div class="flex item-flex">
+                        <base-input class="item-flex" v-model="crop.ObjectID">
+                            ObjectID
+                        </base-input>
+
+                        <base-input input-width="50px" v-model="crop.count"></base-input>
+                    </div>
+                    
+                    <div>
+                        <button type="button" class="bg-error" @click="setup.bioDomes[b][c].splice(i, 1)"><span class="material-icons">delete</span></button>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div>
+            <button>Create Mine</button>
+
+            <button @click="exportMineSetup()" type="button" class="bg-color2">Export Mine Setup</button>
+            <button type="button" class="bg-color2">Import Mine Setup</button>
         </div>
     </form>
 
-    <div>
-        <textarea v-model="state.output"></textarea>
+    <div v-if="state.output">
+        <div class="smaller margin">
+            Part Count: {{state.partCount}}
+            <br>
+            Projected Storage: {{state.projectedStorage}}
+            <br>
+            Projected Extraction Rate: {{state.projectedExtractionRate}} (assumes 100% density with zero diminishing returns)
+        </div>
+
+        <base-input v-model="state.output" type="textarea"></base-input>
     </div>
     <!---div class="flex">
         <form @submit.prevent = "createMine()">

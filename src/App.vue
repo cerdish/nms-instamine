@@ -3,10 +3,9 @@
 </script>
 
 <template>
-    <h1>
+    <h1 class="padding bg-color1" style="margin:0;">
         Insta-Mine for No Man's Sky
-
-        <div class="smaller">Create mines with the click of a button</div>
     </h1>
+
     <mine-setup></mine-setup>
 </template>
