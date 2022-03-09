@@ -58,7 +58,7 @@
     if(localStorage.setup){
         let storedSetup = JSON.parse(localStorage.setup);
 
-        Object.assign(setup, storedSetup._rawValue);
+        Object.assign(setup, storedSetup);
     }
 
     const createMine = () => {
