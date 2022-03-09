@@ -6,7 +6,7 @@
     import baseCheckbox from './baseCheckbox.vue';
     import { saveAs } from 'file-saver'
 
-    const setup = reactive({
+    const setup = ref({
         base: "",
         pipelineCount: 10,
         extractorDensity: 1,
