@@ -8,6 +8,8 @@
         inputWidth:{}
     })
 
+    const emit = defineEmits(['update:modelValue'])
+
     const id = ref("input-" + (Math.random()+"").replace(/\./g,"-"));
 </script>
 
@@ -18,9 +20,9 @@
         </label>
 
         <div class="input-parent" :style="{width: inputWidth}">
-            <textarea v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
+            <textarea @input="$emit('update:modelValue', $event.target.value)" :value="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
 
-            <input v-model="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
+            <input @input="$emit('update:modelValue', $event.target.value)" :value="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
             
             <div class="input-note" v-if="$slots.note">
                 <slot name="note"></slot>

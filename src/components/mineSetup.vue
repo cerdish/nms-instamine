@@ -6,7 +6,7 @@
     import baseCheckbox from './baseCheckbox.vue';
     import { saveAs } from 'file-saver'
 
-    const setup = ref({
+    const setup = reactive({
         base: "",
         pipelineCount: 10,
         extractorDensity: 1,
@@ -58,7 +58,7 @@
     if(localStorage.setup){
         let storedSetup = JSON.parse(localStorage.setup);
 
-        Object.assign(setup, storedSetup);
+        Object.assign(setup, storedSetup._rawValue);
     }
 
     const createMine = () => {
@@ -210,8 +210,6 @@
             <button type="button" class="bg-color2">Import Mine Setup</button>
         </div>
     </form>
-
-    {{setup}}
 
     <div v-if="state.output">
         <div class="smaller margin">

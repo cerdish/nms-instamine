@@ -11,7 +11,7 @@
 <template>
     <div class="checkbox-wrapper">
         <div class="checkbox-parent">
-            <input type="checkbox" :id="$attrs.id || id" v-model="modelValue" v-bind="$attrs" />
+            <input type="checkbox" :id="$attrs.id || id" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" v-bind="$attrs" />
         </div>
 
         <label :for="$attrs.id || id">
