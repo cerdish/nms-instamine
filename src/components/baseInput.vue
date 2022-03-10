@@ -60,4 +60,7 @@
         font-size:0.8em;
         margin-top:0.25rem;
     }
+    .smaller .input-wrapper{
+        margin:calc(var(--default-gap) / 2);
+    }
 </style>
