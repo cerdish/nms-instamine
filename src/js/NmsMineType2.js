@@ -121,13 +121,12 @@ function create(setup){
         platformFloor.translateOnAxis(base.axies.z, platformFloor.width);
     }
 
-    base.addParts(createPlatforms(platformFloor, platformScale, 1, "^T_FLOOR", "^CUBEFRAME"));
-
     
-
     base.applyUserData(setup.userDataArray);
-
-    /*for(let i = 0; i < 257; i++){
+    
+    /*base.addParts(createPlatforms(platformFloor, platformScale, 1, "^T_FLOOR", "^CUBEFRAME"));
+    
+    for(let i = 0; i < 257; i++){
         base.addParts(platformFloor.clone("^U_EXTRACTOR_S").normalize().translateOnAxis(base.axies.z, extractor.width * i).setUserData(i));
         base.addParts(platformFloor.clone("^T_FLOOR").normalize().translateOnAxis(base.axies.z, extractor.width * i));
 

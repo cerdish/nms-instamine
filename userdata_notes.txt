@@ -6,6 +6,8 @@ blue with gold trim: 0000100000000000000000001000000
                                              
 white and gold: 0000100000000000000000000000000
 dark green and gold: 0000100000000000000000000111100
+black and gold: 0000100000000000000000000000001
+black and gold / blue?: 67108967
 
 dark green: 111100
 dark blue red trim: 1000000
