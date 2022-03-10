@@ -127,14 +127,14 @@ function create(setup){
 
     base.applyUserData(setup.userDataArray);
 
-    for(let i = 0; i < 257; i++){
+    /*for(let i = 0; i < 257; i++){
         base.addParts(platformFloor.clone("^U_EXTRACTOR_S").normalize().translateOnAxis(base.axies.z, extractor.width * i).setUserData(i));
         base.addParts(platformFloor.clone("^T_FLOOR").normalize().translateOnAxis(base.axies.z, extractor.width * i));
 
         if(i % 8 == 0){
             platformFloor.translateOnAxis(base.axies.z, depot.width);
         }
-    }
+    }*/
 
     base.updateTimestamps();
 
