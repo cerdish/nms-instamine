@@ -20,9 +20,9 @@
         </label>
 
         <div class="input-parent" :style="{width: inputWidth}">
-            <textarea @input="$emit('update:modelValue', $event.target.value)" :value="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
+            <textarea v-model="props.modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
 
-            <input @input="$emit('update:modelValue', $event.target.value)" :value="modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
+            <input v-model="props.modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
             
             <div class="input-note" v-if="$slots.note">
                 <slot name="note"></slot>

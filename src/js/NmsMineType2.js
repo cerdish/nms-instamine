@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as _ from 'lodash';
 import { NmsBase } from "./NmsBase";
-import { createPlatforms, addTimestamps, extractPart, createWire, createWalls, createMultiWire, createSpaceport } from "./NmsBaseUtils";
+import { createPlatforms, extractPart, createPark, createWire, createWalls, createMultiWire, createSpaceport, createBioDomes } from "./NmsBaseUtils";
 
 var depotsPerRow = 10;
 
@@ -105,17 +105,27 @@ function create(setup){
     let platformFloor = warehouseFloor.clone().scaleTo(platformScale);
     platformFloor.translateOnAxis(base.axies.z, (platformFloor.width / 2) + (warehouseFloor.width / 2) + (warehouseFloor.width * (warehousePlatformCount - 1)));
     
+    if(setup.includeBioDomes){
+        base.addParts(createBioDomes(platformFloor, platformScale, setup.bioDomes, generator, setup.includeWires));
+    }    
+
+    if(setup.includePark){
+        base.addParts(createPark(platformFloor, platformScale, "^T_FLOOR", "^CUBEFRAME"));
+
+        platformFloor.translateOnAxis(base.axies.z, platformFloor.width);
+    }
+
     if(setup.includeLandingPads){
         base.addParts(createSpaceport(platformFloor, platformScale, setup.includeWires ? generator : false));
 
         platformFloor.translateOnAxis(base.axies.z, platformFloor.width);
     }
 
-    let createdBase = JSON.parse(JSON.stringify(setup.base));
-
+    base.updateTimestamps();
     base.applyUserData(setup.userDataArray);
 
-    createdBase.Objects = addTimestamps(base.Objects);
+    let createdBase = JSON.parse(JSON.stringify(setup.base));
+    createdBase.Objects = base.Objects;
     
     return createdBase;
 }

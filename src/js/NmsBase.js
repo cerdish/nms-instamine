@@ -88,6 +88,21 @@ class NmsBase{
 
         return this;
     }
+
+    updateTimestamps(){
+        let timestamp = (new Date() / 1000) - (60*60*24*7)
+        //let timestamp = Math.round((new Date() / 1000) - (60*60))
+    
+        for(let i = 0; i < this.Objects.length; i++){
+            let o = this.Objects [i];
+    
+            o.Timestamp = timestamp;
+    
+            timestamp = timestamp + 1;
+        }
+    
+        this;
+    }
 }
 
 export { NmsBase };
