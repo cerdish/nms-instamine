@@ -340,7 +340,9 @@ class NmsBasePart{
             //let userData = i.toString(2) + "000000000000000000000000000000000000000000000000000000";
             userData = parseInt(userData, 2);
 
-            clones.push(this.clone().translateOnAxis(axis, totalOffset))//.setUserData(userData));
+            userData = i;
+
+            clones.push(this.clone().translateOnAxis(axis, totalOffset).setUserData(userData));
         }
 
         return clones;

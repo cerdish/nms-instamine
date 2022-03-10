@@ -38,7 +38,7 @@ function create(setup){
     if(setup.includeWires) base.addParts(createWire(generator.powerPos, extractor.clone().scaleTo(extractorScale).powerPos, "^U_POWERLINE", 400));
 
     base.addParts(createPlatforms(warehouseFloor, warehouseScale, 1, "^T_FLOOR", "^CUBEFRAME"));
-    warehouseFloor.translateOnAxis(base.axies.z, warehouseFloor.width).translateOnAxis(base.axies.x, warehouseFloor.width/2);
+    warehouseFloor.translateOnAxis(base.axies.z, warehouseFloor.width)//.translateOnAxis(base.axies.x, warehouseFloor.width/2);
 
     let depot = getFirstDepot(warehouseFloor, base.axies);
     let masterDepot = depot.clone().translateOnAxis(base.axies.z, depotsPerRow * depot.width).translateOnAxis(base.axies.x, depot.width * -1);
@@ -55,7 +55,7 @@ function create(setup){
         if(setup.includeDepots) base.addParts(newDepot.clone().setJitter(0.01).clone(false, setup.depotDensity));
 
         if(setup.includeWires){
-            let wireRoute = [newDepot.position, getPipeConnectionPos(warehouseFloor, i), newExtractor.pipePos];
+            let wireRoute = [newDepot.position, getPipeConnectionPos(extractor, i), newExtractor.pipePos];
 
             if(setup.includeMasterDepots) wireRoute.unshift(getNextPipePos(masterDepot.position, i, base.axies));
 
@@ -121,8 +121,22 @@ function create(setup){
         platformFloor.translateOnAxis(base.axies.z, platformFloor.width);
     }
 
-    base.updateTimestamps();
+    base.addParts(createPlatforms(platformFloor, platformScale, 1, "^T_FLOOR", "^CUBEFRAME"));
+
+    
+
     base.applyUserData(setup.userDataArray);
+
+    for(let i = 0; i < 257; i++){
+        base.addParts(platformFloor.clone("^U_EXTRACTOR_S").normalize().translateOnAxis(base.axies.z, extractor.width * i).setUserData(i));
+        base.addParts(platformFloor.clone("^T_FLOOR").normalize().translateOnAxis(base.axies.z, extractor.width * i));
+
+        if(i % 8 == 0){
+            platformFloor.translateOnAxis(base.axies.z, depot.width);
+        }
+    }
+
+    base.updateTimestamps();
 
     let createdBase = JSON.parse(JSON.stringify(setup.base));
     createdBase.Objects = base.Objects;
@@ -176,7 +190,7 @@ function getNextPipePos(position, index, axies){
     return obj.position;
 }
 
-function getPipeConnectionPos(floor, index){
+/*function getPipeConnectionPos(floor, index){
     let cursor = floor.clone().normalize();
 
     let axies = cursor.getAxies();
@@ -193,6 +207,18 @@ function getPipeConnectionPos(floor, index){
     }
 
     //cursor.translateOnAxis(axies.y, -cursor.width );
+
+    return cursor.position;
+}*/
+
+function getPipeConnectionPos(extractor, index){
+    let cursor = extractor.clone("^T_FLOOR").normalize();
+
+    let axies = cursor.getAxies();
+
+    cursor.rotateOnAxis(axies.y, index % 2 == 0 ? 45 : -45);
+
+    cursor.translateOnAxis(cursor.at, (cursor.width * 2) + (pipeWidth * index))
 
     return cursor.position;
 }

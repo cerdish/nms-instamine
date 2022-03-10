@@ -3,8 +3,16 @@ colors:    0000000000000000000000100000001
 materials: 1000000010000000000000000000000
 
 blue with gold trim: 0000100000000000000000001000000
+                                             
 white and gold: 0000100000000000000000000000000
 dark green and gold: 0000100000000000000000000111100
 
 dark green: 111100
-dark blue: 1000000
+dark blue red trim: 1000000
+dark blue brownish trim: 71
+red: 72
+black / bright green: 111111
+black: 1000001 = 65
+blue on blue: 30
+black yellow trim: 67
+black blue trim: 103 = 1100111

@@ -22,7 +22,7 @@
         <div class="input-parent" :style="{width: inputWidth}">
             <textarea v-model="props.modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
 
-            <input v-model="props.modelValue" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
+            <input v-model="props.modelValue" @input="$emit('update:modelValue', $event.target.value)" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
             
             <div class="input-note" v-if="$slots.note">
                 <slot name="note"></slot>

@@ -138,7 +138,7 @@
             <div v-for="obj,i in setup.userDataArray" :key="i" class="card flex smaller">
                 <base-input class="item-flex" v-model="obj.ObjectID"></base-input>
 
-                <base-input input-width="50px" v-model="obj.UserData"></base-input>
+                <base-input input-width="100px" v-model="obj.UserData"></base-input>
                 
                 <div>
                     <button type="button" class="bg-error" @click="setup.userDataArray.splice(i, 1)"><span class="material-icons">delete</span></button>
