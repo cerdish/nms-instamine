@@ -150,7 +150,7 @@ function createWall(wall, length){
 }
 
 function createSpaceport(cursor, scale, generator){
-    cursor = cursor.clone().normalize();
+    cursor = cursor.clone("x").normalize();
 
     let base = new NmsBase();
     let axies = cursor.getAxies();

@@ -26,7 +26,7 @@ function create(setup){
     let warehouseFloor = extractor.clone("^T_FLOOR").scaleTo(warehouseScale);
     warehouseFloor.translateOnAxis(base.axies.y, warehouseFloor.width * 0.7)
 
-    extractor.setPosition(warehouseFloor.position)
+    //extractor.setPosition(warehouseFloor.position)
 
     let generatorCount = getGeneratorCount(setup);
 
@@ -37,7 +37,7 @@ function create(setup){
 
     if(setup.includeWires) base.addParts(createWire(generator.powerPos, extractor.clone().scaleTo(extractorScale).powerPos, "^U_POWERLINE", 400));
 
-    base.addParts(createPlatforms(warehouseFloor, warehouseScale, 1, "^T_FLOOR", "^CUBEFRAME"));
+    //base.addParts(createPlatforms(warehouseFloor, warehouseScale, 1, "^T_FLOOR", "^CUBEFRAME"));
     warehouseFloor.translateOnAxis(base.axies.z, warehouseFloor.width)//.translateOnAxis(base.axies.x, warehouseFloor.width/2);
 
     let depot = getFirstDepot(warehouseFloor, base.axies);
@@ -52,10 +52,17 @@ function create(setup){
 
         let newDepot = getNextDepot(depot, i, base.axies);
         
-        if(setup.includeDepots) base.addParts(newDepot.clone().setJitter(0.01).clone(false, setup.depotDensity));
+        let hiddenDepot = newDepot.clone().setPosition(getHiddenDepotPos(extractor, i))
+
+        if(setup.includeDepots){
+            base.addParts(newDepot.clone());
+            
+            //hide these depots underground so that the render is better (will it work?)
+            if(setup.depotDensity > 1) base.addParts(hiddenDepot.clone().setJitter(0.01).clone(false, setup.depotDensity - 1));
+        }
 
         if(setup.includeWires){
-            let wireRoute = [newDepot.position, getPipeConnectionPos(extractor, i), newExtractor.pipePos];
+            let wireRoute = [newDepot.position, hiddenDepot.position , newExtractor.pipePos];
 
             if(setup.includeMasterDepots) wireRoute.unshift(getNextPipePos(masterDepot.position, i, base.axies));
 
@@ -210,16 +217,39 @@ function getNextPipePos(position, index, axies){
     //cursor.translateOnAxis(axies.y, -cursor.width );
 
     return cursor.position;
-}*/
+}
 
-function getPipeConnectionPos(extractor, index){
+function getHiddenDepotPos(extractor, index){
+    let offset = pipeWidth;
+
     let cursor = extractor.clone("^T_FLOOR").normalize();
 
     let axies = cursor.getAxies();
 
     cursor.rotateOnAxis(axies.y, index % 2 == 0 ? 45 : -45);
 
-    cursor.translateOnAxis(cursor.at, (cursor.width * 2) + (pipeWidth * index))
+    cursor.translateOnAxis(cursor.at, (cursor.width * 2) + (offset * index))
+
+    return cursor.position;
+}
+*/
+
+function getHiddenDepotPos(extractor, index){
+    let cursor = extractor.clone("x").normalize();
+    let axies = cursor.getAxies();
+    
+    let offset = cursor.width / 2;
+    let totalOffset = (cursor.width * 2) + (offset * index);
+    let degreeOffset = 45;
+
+    if(index % 2 == 0){
+        degreeOffset = -45;
+        totalOffset -= offset;
+    }
+
+    cursor.rotateOnAxis(axies.y, degreeOffset);
+    cursor.translateOnAxis(cursor.at, totalOffset);
+    cursor.translateOnAxis(axies.y, -cursor.height * 10);
 
     return cursor.position;
 }
