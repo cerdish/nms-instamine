@@ -105,9 +105,8 @@ function create(setup){
     let platformFloor = warehouseFloor.clone().scaleTo(platformScale);
     platformFloor.translateOnAxis(base.axies.z, (platformFloor.width / 2) + (warehouseFloor.width / 2) + (warehouseFloor.width * (warehousePlatformCount - 1)));
     
-    if(setup.includeBioDomes){
-        base.addParts(createBioDomes(platformFloor, platformScale, setup.bioDomes, generator, setup.includeWires));
-    }    
+    //we create the biodomes here so that they appear in the correct location, but we add them to the base at the end so they are the last parts to load in
+    let bioDomeParts = createBioDomes(platformFloor, platformScale, setup.bioDomes, generator, setup.includeWires); 
 
     if(setup.includePark){
         base.addParts(createPark(platformFloor, platformScale, "^T_FLOOR", "^CUBEFRAME"));
@@ -121,6 +120,9 @@ function create(setup){
         platformFloor.translateOnAxis(base.axies.z, platformFloor.width);
     }
 
+    if(setup.includeBioDomes){
+        base.addParts(bioDomeParts);
+    }
     
     base.applyUserData(setup.userDataArray);
     
