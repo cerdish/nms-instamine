@@ -239,12 +239,12 @@ function getHiddenDepotPos(extractor, index){
     let axies = cursor.getAxies();
     
     let offset = cursor.width / 2;
-    let totalOffset = (cursor.width * 2) + (offset * index);
+    let totalOffset = (cursor.width) + (offset * index);
     let degreeOffset = 45;
 
     if(index % 2 == 0){
         degreeOffset = -45;
-        totalOffset -= offset;
+        totalOffset += offset ;
     }
 
     cursor.rotateOnAxis(axies.y, degreeOffset);
