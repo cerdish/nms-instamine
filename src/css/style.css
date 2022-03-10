@@ -31,7 +31,12 @@ button{
     padding:0.25rem var(--default-gap);
     margin:var(--default-gap);
     font-size:inherit;
+}
+button:not([disabled]){
     cursor:pointer;
+}
+button:disabled{
+    opacity:0.5;
 }
 form{
     max-width:650px;
@@ -53,10 +58,10 @@ form{
     flex:1
 }
 
-.smaller .margin{
+.smaller .margin, .smaller button{
     margin:calc(var(--default-gap) / 2);
 }
-.smaller .padding{
+.smaller .padding, .smaller button{
     padding:calc(var(--default-gap) / 2);
 }
 
