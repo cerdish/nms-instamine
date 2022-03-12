@@ -32,7 +32,7 @@
 
 </template>
 
-<style scoped>
+<style>
     .input-wrapper{
         margin:var(--default-gap);
         max-width:650px;
