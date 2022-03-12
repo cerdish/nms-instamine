@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as _ from 'lodash';
 import { NmsBase } from "./NmsBase";
-import { createPlatforms, extractPart, createPark, createWire, createWalls, createMultiWire, createSpaceport, createBioDomes } from "./NmsBaseUtils";
+import { createPlatforms, extractPart, createPark, createWire, createWalls, createMultiWire, createSpaceport, createBioDomes, getSubVector } from "./NmsBaseUtils";
 
 var depotsPerRow = 10;
 
@@ -16,6 +16,7 @@ function create(setup){
     warehouseScale = depotsPerRow + 4;
 
     let base = new NmsBase();
+    let cursor = base.createPart("x")
     let warehousePlatformCount = Math.ceil(setup.pipelineCount / (depotsPerRow * depotsPerRow));
 
     let generator = extractPart(setup.base, "^U_GENERATOR_S").normalize();
@@ -39,6 +40,9 @@ function create(setup){
 
     //base.addParts(createPlatforms(warehouseFloor, warehouseScale, 1, "^T_FLOOR", "^CUBEFRAME"));
     warehouseFloor.translateOnAxis(base.axies.z, warehouseFloor.width)//.translateOnAxis(base.axies.x, warehouseFloor.width/2);
+    warehouseFloor.translateOnAxis(base.axies.x, setup.warehouseOffset[0] * cursor.width);
+    warehouseFloor.translateOnAxis(base.axies.y, setup.warehouseOffset[1] * cursor.height);
+    warehouseFloor.translateOnAxis(base.axies.z, setup.warehouseOffset[2] * cursor.depth);
 
     let depot = getFirstDepot(warehouseFloor, base.axies);
     let masterDepot = depot.clone().translateOnAxis(base.axies.z, depotsPerRow * depot.width).translateOnAxis(base.axies.x, depot.width * -1);
@@ -75,6 +79,7 @@ function create(setup){
 
         if(i % (depotsPerRow * depotsPerRow) == 0 && setup.includeMasterDepots){
             base.addParts(masterDepot.clone());
+            //base.addParts(masterDepot.clone("^BASE_WPLANT3"));
             base.addParts(masterDepot.clone("^U_POWERLINE"));
         }
 
@@ -89,13 +94,28 @@ function create(setup){
 
     base.addParts(createPlatforms(warehouseFloor, warehouseScale, warehousePlatformCount, "^T_FLOOR", "^CUBEFRAME"));
 
-    base.addParts(warehouseFloor.clone("^T_GFLOOR").translateOnAxis(base.axies.y, depot.height).cloneOnAxis(base.axies.z, warehousePlatformCount, warehouseFloor.width));
+    let roofs = warehouseFloor.clone("^T_GFLOOR").translateOnAxis(base.axies.y, depot.height).cloneOnAxis(base.axies.z, warehousePlatformCount, warehouseFloor.width);
+
+    base.addParts(roofs);
 
     let corner1 = depot.clone("^T_WALL").translateOnAxis(base.axies.z, depot.width * -1.5).translateOnAxis(base.axies.x, depot.width * -1.5);
     let corner2 = corner1.clone().translateOnAxis(base.axies.x, (depot.width * depotsPerRow) + (depot.width * 2)).translateOnAxis(base.axies.z, (warehouseFloor.width * warehousePlatformCount) - ((warehouseScale - depotsPerRow - 2) * depot.width));
     
     let warehouseWalls = createWalls(corner1, corner2, base.axies, 2, "^T_WALL_WIN3", "^T_DOOR");
+    
     base.addParts(warehouseWalls);
+
+    /*corner1.translateOnAxis(getSubVector(base.axies.x, base.axies.z.clone().negate()), cursor.width * Math.sqrt(2));
+    corner2.translateOnAxis(getSubVector(base.axies.x, base.axies.z.clone().negate()).negate(), cursor.width * Math.sqrt(2));
+
+    let lights = createWalls(corner1, corner2, base.axies, 4, "^S_LIGHTSTRIP0", false);
+    
+    lights.forEach(function(l){
+        l.scaleTo(2);
+        //l.translateOnAxis(base.axies.y, cursor.height + l.height).invertUp();
+        l.translateOnAxis(base.axies.y, -l.height);
+    })
+    base.addParts(lights);*/
 
     let terminal = _.findLast(warehouseWalls,{ObjectID: "^T_DOOR"}).clone("^BUILDTERMINAL").normalize().invertAt();
     terminal.translateOnAxis(base.axies.z, terminal.depth / -2);
@@ -163,7 +183,7 @@ function getFirstDepot(warehouseFloor, axies){
 }
 
 function getNextExrtactor(extractor, index, axies){
-    return extractor.clone().translateOnAxis(axies.y, (extractor.width + 0.5) * index);
+    return extractor.clone().translateOnAxis(axies.y, (extractor.width + 1) * index);
 }
 
 function getNextDepot(depot, index, axies){

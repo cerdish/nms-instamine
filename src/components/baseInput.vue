@@ -3,7 +3,7 @@
 
     const props = defineProps({
         modelValue:{
-            default:""
+            default:"100%"
         },
         inputWidth:{}
     })
@@ -19,14 +19,14 @@
             <slot></slot>
         </label>
 
-        <div class="input-parent" :style="{width: inputWidth}">
+        <div class="input-parent" :style="'width:' + inputWidth">
             <textarea v-model="props.modelValue" @input="$emit('update:modelValue', $event.target.value)" :id="$attrs.id || id" type="text" v-bind="$attrs" v-if="$attrs.type == 'textarea'"></textarea>
 
             <input v-model="props.modelValue" @input="$emit('update:modelValue', $event.target.value)" :id="$attrs.id || id" type="text" v-bind="$attrs" v-else/>
             
-            <div class="input-note" v-if="$slots.note">
+            <!---div class="input-note" v-if="$slots.note">
                 <slot name="note"></slot>
-            </div>
+            </div--->
         </div>
     </div>
 
@@ -34,14 +34,17 @@
 
 <style scoped>
     .input-wrapper{
-        display:flex;
-        margin:0.5rem;
+        margin:var(--default-gap);
         max-width:650px;
+        display:flex;
+        overflow:hidden;
+        flex-shrink:0;
     }
     .input-wrapper > label{
-        flex:0 1 200px;
-        padding-right:0.5rem;
-        padding-top:0.25rem;
+        width:200px;
+        flex-shrink:0;
+        padding-right:var(--default-gap);
+        padding-top:calc(var(--default-gap) / 2);
     }
     .input-wrapper > .input-parent{
         flex:1;
@@ -53,14 +56,18 @@
     }
     .input-wrapper input{
         width:100%;
-        padding:0.25rem;
+        /*padding:calc(var(--default-gap) / 2);
         font-size:inherit;
+        display:block;*/
     }
     .input-note{
         font-size:0.8em;
-        margin-top:0.25rem;
+        margin-top:calc(var(--default-gap) / 2);
     }
     .smaller .input-wrapper{
         margin:calc(var(--default-gap) / 2);
+    }
+    .kids-no-margin > .input-wrapper{
+        margin:0;
     }
 </style>

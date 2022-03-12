@@ -8,6 +8,7 @@
 
     const setup = reactive({
         base: "",
+        warehouseOffset:[0,0,0],
         pipelineCount: 10,
         extractorDensity: 1,
         depotDensity: 1,
@@ -107,9 +108,19 @@
 <template>
     <form @submit.prevent = "createMine()">
         <base-input v-model="setup.base" type="textarea">
-            base
+            input base
         </base-input>
 
+        <div class="flex margin kids-no-margin">
+            <base-input v-model="setup.warehouseOffset[0]" input-width="50px">
+                warehouse offset (x,y,z)
+            </base-input>
+
+            <base-input v-model="setup.warehouseOffset[1]" input-width="50px"></base-input>
+
+            <base-input v-model="setup.warehouseOffset[2]" input-width="50px"></base-input>
+        </div>
+        
         <base-input v-model="setup.pipelineCount">
             pipeline count
         </base-input>
@@ -136,7 +147,7 @@
             <button class="bg-color1" type="button" @click="setup.userDataArray.push({ObjectID:'', UserData:0})"><span class="material-icons">add</span></button>
             
             <div v-for="obj,i in setup.userDataArray" :key="i" class="card flex smaller">
-                <base-input class="item-flex" v-model="obj.ObjectID"></base-input>
+                <base-input class="item-grow" v-model="obj.ObjectID"></base-input>
 
                 <base-input input-width="100px" v-model="obj.UserData"></base-input>
                 
@@ -194,8 +205,8 @@
                 <button class="bg-error" type="button" @click="setup.bioDomes.splice(b, 1)"><span class="material-icons">delete</span></button>
 
                 <div v-for="crop,c in bioDome" :key="c" class="card flex">
-                    <div class="flex item-flex">
-                        <base-input class="item-flex" v-model="crop.ObjectID"></base-input>
+                    <div class="flex item-grow">
+                        <base-input class="item-grow" v-model="crop.ObjectID"></base-input>
 
                         <base-input input-width="50px" v-model="crop.count"></base-input>
                     </div>

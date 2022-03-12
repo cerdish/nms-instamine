@@ -129,9 +129,11 @@ function createWalls(corner1, corner2, axies, scale, wallObjectID, doorObjectID)
         centerWallIndexes = [Math.floor(centerWallIndex)]
     }
 
-    for(let i = 0; i < centerWallIndexes.length; i++){
-        wallsX2[centerWallIndexes[i]] = wallsX2[centerWallIndexes[i]].clone(doorObjectID);
-        wallsX1[centerWallIndexes[i]] = wallsX1[centerWallIndexes[i]].clone(doorObjectID);
+    if(doorObjectID){
+        for(let i = 0; i < centerWallIndexes.length; i++){
+            wallsX2[centerWallIndexes[i]] = wallsX2[centerWallIndexes[i]].clone(doorObjectID);
+            wallsX1[centerWallIndexes[i]] = wallsX1[centerWallIndexes[i]].clone(doorObjectID);
+        }
     }
 
     return wallsX1.concat(wallsX2, wallsZ1, wallsZ2);
@@ -245,4 +247,8 @@ function createBioDomes(cursor, scale, bioDomes, generator, includeWires){
     return base.Objects
 }
 
-export { createPlatforms, extractPart, createWire, createMultiWire, createWalls, createSpaceport, createPark, createBioDomes };
+function getSubVector(verctor1, verctor2){
+    return new THREE.Vector3().subVectors(verctor1, verctor2)
+}
+
+export { createPlatforms, extractPart, createWire, createMultiWire, createWalls, createSpaceport, createPark, createBioDomes, getSubVector };
