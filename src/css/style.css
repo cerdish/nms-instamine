@@ -12,6 +12,7 @@ body {
     margin:0;
     padding:0;
     font-size:14px;
+    background:url("/src/assets/bg.png") top center / cover no-repeat;
 }
 *{
     box-sizing:border-box;
@@ -39,8 +40,12 @@ button:not([disabled]){
 button:disabled{
     opacity:0.5;
 }
-form{
+.container{
     max-width:650px;
+    margin:auto;
+    background:rgba(255,255,255,0.9);
+    padding:0.5rem;
+    box-shadow:0px 0px 50px 100px rgba(255,255,255,0.9);
 }
 
 .padding{
@@ -71,6 +76,10 @@ form{
 
 .smaller{
     font-size:0.8em;
+}
+.z1{
+    position:relative;
+    z-index:1;
 }
 
 .bg-color1{
@@ -111,6 +120,7 @@ form{
     box-shadow:3px 3px 3px rgba(0,0,0,0.1);
     padding:var(--default-gap);
     margin:var(--default-gap);
+    background:#fff;
 }
 .smaller .card, .card.smaller{
     margin:calc(var(--default-gap) / 2);
