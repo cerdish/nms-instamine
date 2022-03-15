@@ -5,6 +5,7 @@
     import baseInput from './baseInput.vue';
     import baseCheckbox from './baseCheckbox.vue';
     import { saveAs } from 'file-saver'
+    import { copyToClipboard } from '../js/utils'
 
     const setup = reactive({
         base: "",
@@ -89,7 +90,7 @@
 
         let base = JSON.parse(setup.base);
 
-        let filename = base.Name + "_" + Math.round(new Date() / 1000) + "_setup.json"
+        let filename = base.Name + "_setup_" + Math.round(new Date() / 1000) + ".json"
 
         saveAs(blob, filename);
     }
@@ -106,10 +107,16 @@
         saveAs(blob, filename);
     }
 
+    const copyMine = () => {
+        copyToClipboard(state.output);
+    }
+
     const importMine = () => {
         const reader = new FileReader()
         reader.onload = () => {
             let loadedSetup = JSON.parse(reader.result);
+
+            console.log(loadedSetup)
 
             Object.assign(setup, loadedSetup);
         }
@@ -232,8 +239,8 @@
 
         <div>
             <button>Create Mine</button>
-            <button type="button" :disabled="!state.output" @click="exportMine()">
-                Export Mine
+            <button type="button" :disabled="!state.output" @click="copyMine()">
+                Copy Mine to Clipboard
             </button>
             <button @click="exportMineSetup()" type="button" class="bg-color2">Export Mine Setup</button>
             <button type="button" class="bg-color2" @click="fileEl.click()">Import Mine Setup</button>
