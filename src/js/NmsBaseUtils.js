@@ -30,6 +30,16 @@ function createPlatforms(cursor, scale, count, floorObjectID, foundationObjectID
     return parts;
 }
 
+function extractParts(base, ObjectID){
+    let parts = _.filter(base.Objects, {ObjectID:ObjectID});
+
+    parts = parts.map(function(part){
+        return new NmsBasePart(part.ObjectID, part.UserData, part.Position, part.Up, part.At);
+    });
+
+    return parts;
+}
+
 function extractPart(base, ObjectID){
     let part = _.find(base.Objects, {ObjectID:ObjectID});
 
@@ -251,4 +261,4 @@ function getSubVector(verctor1, verctor2){
     return new THREE.Vector3().subVectors(verctor1, verctor2)
 }
 
-export { createPlatforms, extractPart, createWire, createMultiWire, createWalls, createSpaceport, createPark, createBioDomes, getSubVector };
+export { createPlatforms, extractPart, extractParts, createWire, createMultiWire, createWalls, createSpaceport, createPark, createBioDomes, getSubVector };

@@ -96,7 +96,7 @@ class NmsBasePart{
     }
     
     get telePos(){
-        let offset = teleOffsets[this.ObjectID] || [0, 1.7, -0.9];
+        let offset = teleOffsets[this.ObjectID] || [0, 1.65, -0.9];
 
         let obj = new THREE.Object3D();
         obj.position.fromArray(this.Position);
