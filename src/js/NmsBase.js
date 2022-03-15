@@ -90,18 +90,43 @@ class NmsBase{
     }
 
     updateTimestamps(){
-        let timestamp = (new Date() / 1000) - (60*60*24*7)
+        //let timestamp = (new Date() / 1000) - (60*60*24*7)
         //let timestamp = Math.round((new Date() / 1000) - (60*60))
+        let timestamp = Math.round(new Date() / 1000)
     
         for(let i = 0; i < this.Objects.length; i++){
             let o = this.Objects [i];
     
             o.Timestamp = timestamp;
     
-            timestamp = timestamp + 1;
+            //timestamp = timestamp + 1;
         }
     
         this;
+    }
+
+    getParts(ObjectID){
+        return _.filter(this.Objects, {ObjectID: ObjectID});
+    }
+
+    getGeneratorCount(powerHotspotEfficiency){
+        let extractors = this.getParts("^U_EXTRACTOR_S");
+        let bioDomes = this.getParts("^BIOROOM");
+        let teleports = this.getParts("^TELEPORT");
+
+        let powerConsumption = (50 * (bioDomes.length + extractors.length)) + (20 * teleports.length);
+
+        let generatorCount = Math.ceil(powerConsumption / ((powerHotspotEfficiency / 100) * 300));
+
+        console.log(generatorCount,bioDomes.length,extractors.length)
+
+        return generatorCount
+    }
+
+    addGenerators(generator, powerHotspotEfficiency){
+        this.addParts(generator.clone().setJitter(0.01).clone(false, this.getGeneratorCount(powerHotspotEfficiency)));
+
+        return this;
     }
 }
 

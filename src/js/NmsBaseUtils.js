@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import * as _ from 'lodash'
 import { NmsBase } from "./NmsBase";
 
-const maxWireLen = 999;
+const maxWireLen = 99999;
 
 function createPlatforms(cursor, scale, count, floorObjectID, foundationObjectID){
     let floor = cursor.clone(floorObjectID).scaleTo(scale);

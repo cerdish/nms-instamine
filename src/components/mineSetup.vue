@@ -1,7 +1,7 @@
 <script setup>
     import { ref, reactive, computed } from 'vue'
     import * as _ from 'lodash';
-    import * as NmsMine from "../js/NmsMineType2";
+    import * as NmsMine from "../js/NmsMineStandard";
     import baseInput from './baseInput.vue';
     import baseCheckbox from './baseCheckbox.vue';
     import { saveAs } from 'file-saver'
@@ -54,7 +54,9 @@
     });
     
     const outputEl = ref(null);
-    defineExpose({ outputEl });
+    const fileEl = ref(null);
+
+    defineExpose({ outputEl, fileEl });
 
     if(localStorage.setup){
         let storedSetup = JSON.parse(localStorage.setup);
@@ -102,6 +104,16 @@
         let filename = base.Name + "_" + Math.round(new Date() / 1000) + ".json"
 
         saveAs(blob, filename);
+    }
+
+    const importMine = () => {
+        const reader = new FileReader()
+        reader.onload = () => {
+            let loadedSetup = JSON.parse(reader.result);
+
+            Object.assign(setup, loadedSetup);
+        }
+        reader.readAsBinaryString(fileEl.value.files[0])
     }
 </script>
 
@@ -224,7 +236,9 @@
                 Export Mine
             </button>
             <button @click="exportMineSetup()" type="button" class="bg-color2">Export Mine Setup</button>
-            <button type="button" class="bg-color2">Import Mine Setup</button>
+            <button type="button" class="bg-color2" @click="fileEl.click()">Import Mine Setup</button>
+
+            <input type="file" ref="fileEl" @change = "importMine()" style="display:none;">
         </div>
     </form>
 

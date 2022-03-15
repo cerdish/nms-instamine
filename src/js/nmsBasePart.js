@@ -31,6 +31,7 @@ const objectSizes = {
     "^BASE_FLAG":[5.33333/2, 3.33333/2, 5.33333/2],
     "^S_LIGHTSTRIP0":[5.33333/2, 3.33333/4, 5.33333/2],
     "^BIOROOM":[12, 6, 12],
+    "^U_PIPELINE":[0.33333, 0.33333, 0.33333],
     "^BUILDTERMINAL":[5.33333, 3.33333/2, 5.33333/2]
 };
 
@@ -347,6 +348,24 @@ class NmsBasePart{
         }
 
         return clones;
+    }
+
+    cloneOnGrid(axies, countX, countZ, offset){
+        let cursor = this.clone();
+        let cursorOffsetX = ((countX -1) * offset) / 2;
+        let cursorOffsetZ = ((countZ -1) * offset) / 2;
+
+        cursor.translateOnAxis(axies.x, -cursorOffsetX).translateOnAxis(axies.z, -cursorOffsetZ);
+
+        let parts = [];
+
+        for(let i = 0; i < countZ; i++){
+            parts = parts.concat(cursor.cloneOnAxis(axies.x, countX, offset));
+
+            cursor.translateOnAxis(axies.z, offset);
+        }
+
+        return parts;
     }
 
     invertUp(){
