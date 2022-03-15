@@ -1,7 +1,7 @@
 <script setup>
     import { ref, reactive, computed } from 'vue'
     import * as _ from 'lodash';
-    import * as NmsMine from "../js/NmsMineMaxExtraction";
+    import * as NmsMine from "../js/NmsMineStandard";
     import baseInput from './baseInput.vue';
     import baseCheckbox from './baseCheckbox.vue';
     import { saveAs } from 'file-saver'
