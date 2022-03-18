@@ -116,7 +116,7 @@
         reader.onload = () => {
             let loadedSetup = JSON.parse(reader.result);
 
-            console.log(loadedSetup)
+            //console.log(loadedSetup)
 
             Object.assign(setup, loadedSetup);
         }

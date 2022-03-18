@@ -79,7 +79,7 @@ class NmsBase{
                 objects = _.filter(objects, {ObjectID: userDataArray[i].ObjectID});
             }
 
-            console.log(userDataArray[i])
+            //console.log(userDataArray[i])
 
             objects.forEach((object) => {
                 object.UserData = parseInt(userDataArray[i].UserData);
@@ -118,7 +118,7 @@ class NmsBase{
 
         let generatorCount = Math.ceil(powerConsumption / ((powerHotspotEfficiency / 100) * 300));
 
-        console.log(generatorCount,bioDomes.length,extractors.length)
+        //console.log(generatorCount,bioDomes.length,extractors.length)
 
         return generatorCount
     }

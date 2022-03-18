@@ -4,7 +4,7 @@ import { NmsBase } from "./NmsBase";
 function create(setup){
     let teleporters = extractParts(setup.base, "^U_MINIPORTAL");
 
-    console.log(teleporters)
+    //console.log(teleporters)
     
     let base = new NmsBase();
 

@@ -207,12 +207,17 @@ function createPark(cursor, scale, floorObjectID, foundationObjectID){
     return base.Objects
 }
 
-function createBioDomes(cursor, scale, bioDomes, generator, includeWires){
+function createBioDomes(cursor, scale, bioDomes, generator, includeWires, axies){
     cursor = cursor.clone().normalize();
+
+    console.log(axies)
+    
+    axies = axies || cursor.getAxies();
+    
+    console.log(axies)
 
     let base = new NmsBase();
 
-    let axies = cursor.getAxies();
     let platformWidth = cursor.width * scale;
     let bioScale = 1.5;
     let maxCropRadius = Math.min(4.5, 4.5 * bioScale);
@@ -245,7 +250,7 @@ function createBioDomes(cursor, scale, bioDomes, generator, includeWires){
 
         let oldDome = dome.clone();
 
-        console.log(dome.width)
+        //console.log(dome.width)
 
         if(k < bioDomes.length - 1) dome.translateOnAxis(axies.z, dome.width);
 
