@@ -90,9 +90,9 @@ class NmsBase{
     }
 
     updateTimestamps(){
-        //let timestamp = (new Date() / 1000) - (60*60*24*7)
+        let timestamp = (new Date() / 1000) - (60*60*24*7)
         //let timestamp = Math.round((new Date() / 1000) - (60*60))
-        let timestamp = Math.round(new Date() / 1000)
+        //let timestamp = Math.round(new Date() / 1000)
     
         for(let i = 0; i < this.Objects.length; i++){
             let o = this.Objects [i];
